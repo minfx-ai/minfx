@@ -1,61 +1,16 @@
 # Minfx
 
-A minimal Python package for the minfx project.
+Neptune just announced the shutdown of its services.
 
-## Installation
+Drop-in Replacement: just change
 
-```bash
-pip install minfx
+```
+import neptune
+```
+to
+```
+import minfx.neptune as neptune
 ```
 
-## Development Installation
+We will later publish how to generate new API token and sign up to the service.
 
-```bash
-git clone https://github.com/minfx-ai/minfx.git
-pip install -e .
-```
-
-For development with all dependencies:
-
-```bash
-pip install -e ".[dev]"
-```
-
-## Usage
-
-```python
-import minfx
-print(f"Minfx version: {minfx.__version__}")
-```
-
-## Development
-
-### Running Tests
-
-```bash
-pytest
-```
-
-### Code Formatting
-
-```bash
-black .
-```
-
-### Type Checking
-
-```bash
-mypy .
-```
-
-### Linting
-
-```bash
-flake8 .
-```
-
-## Building for Distribution
-
-```bash
-python -m build
-```

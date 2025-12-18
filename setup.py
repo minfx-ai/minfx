@@ -6,6 +6,7 @@ Setup script for MinFX package.
 from setuptools import setup, find_packages
 import os
 
+
 # Read the README file for long description
 def read_readme():
     readme_path = os.path.join(os.path.dirname(__file__), "README.md")
@@ -14,14 +15,16 @@ def read_readme():
             return f.read()
     return ""
 
+
 # Read version from package
 def get_version():
     version_file = os.path.join(os.path.dirname(__file__), "minfx", "__init__.py")
     with open(version_file, "r", encoding="utf-8") as f:
         for line in f:
             if line.startswith("__version__"):
-                return line.split("=")[1].strip().strip('"\'')
-    return "0.1.0"
+                return line.split("=")[1].strip().strip("\"'")
+    return "0.3.0"
+
 
 setup(
     name="minfx",
@@ -51,7 +54,7 @@ setup(
     ],
     python_requires=">=3.8",
     install_requires=[
-        # No dependencies as requested
+        "neptune",
     ],
     extras_require={
         "dev": [
@@ -64,4 +67,4 @@ setup(
     },
     include_package_data=True,
     zip_safe=False,
-) 
+)

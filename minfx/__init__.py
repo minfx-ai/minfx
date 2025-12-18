@@ -1,11 +1,12 @@
 """
-MinFX - A minimal Python package for the minfx project.
+MinFX.
 
 This package provides core functionality for the minfx system.
 """
 
-__version__ = "0.1.0"
+__version__ = "0.3.0"
 __author__ = "Minfx Technologies, s.r.o."
-__email__ = "team@minfx.ai"
+__email__ = "contact@minfx.ai"
 
-# Package level imports can be added here as the package grows 
+# Package level imports can be added here as the package grows
+# Neptune is available as minfx.neptune
