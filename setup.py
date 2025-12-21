@@ -16,7 +16,7 @@ def read_readme():
     return ""
 
 
-# Read version from VERSION file
+# Read version from local VERSION file
 def get_version():
     version_path = os.path.join(os.path.dirname(__file__), "VERSION")
     with open(version_path, "r", encoding="utf-8") as f:
