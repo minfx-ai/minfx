@@ -1,3 +1,5 @@
+.PHONY: install-build install-dev test build clean install-test install-prod version prepare deploy-pypi all dev-setup quick-test
+
 # Install build tools
 install-build:
 	@echo "Installing build tools..."
@@ -11,7 +13,6 @@ install-dev:
 # Run tests
 test:
 	@echo "Running tests..."
-	pip install pytest
 	pytest tests/ -v
 
 # Build package for distribution
@@ -48,7 +49,7 @@ install-prod:
 version:
 	cat VERSION
 
-prepare: clean install-build test 
+prepare: clean build test 
 	@echo "Preparation complete!"
 
 # Deploy to PyPI
