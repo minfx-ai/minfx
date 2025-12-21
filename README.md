@@ -9,8 +9,18 @@ import neptune
 ```
 to
 ```
-import minfx.neptune as neptune
+import minfx.neptune_v2 as neptune
 ```
 
-We will later publish how to generate new API token and sign up to the service.
+or
 
+```
+import neptune_scale
+```
+to
+```
+import minfx.neptune_v3 as neptune_scale
+```
+
+
+We will later publish how to generate new API token and sign up to the service.

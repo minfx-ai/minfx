@@ -16,14 +16,11 @@ def read_readme():
     return ""
 
 
-# Read version from package
+# Read version from VERSION file
 def get_version():
-    version_file = os.path.join(os.path.dirname(__file__), "minfx", "__init__.py")
-    with open(version_file, "r", encoding="utf-8") as f:
-        for line in f:
-            if line.startswith("__version__"):
-                return line.split("=")[1].strip().strip("\"'")
-    return "0.3.0"
+    version_path = os.path.join(os.path.dirname(__file__), "VERSION")
+    with open(version_path, "r", encoding="utf-8") as f:
+        return f.read().strip()
 
 
 setup(
@@ -55,6 +52,7 @@ setup(
     python_requires=">=3.8",
     install_requires=[
         "neptune",
+        "neptune-scale",
     ],
     extras_require={
         "dev": [

@@ -17,7 +17,7 @@ test:
 # Build package for distribution
 build:
 	@echo "Building package..."
-	python -m build
+	python -m build --no-isolation
 
 # Clean build artifacts
 clean:
@@ -45,6 +45,12 @@ install-prod:
 	fi
 	pip install dist/minfx-*.tar.gz
 
+version:
+	cat VERSION
+
+prepare: clean install-build test 
+	@echo "Preparation complete!"
+
 # Deploy to PyPI
 deploy-pypi:
 	@echo "Deploying to PyPI..."
@@ -65,4 +71,3 @@ dev-setup: install-build install-dev
 # Quick test cycle
 quick-test: test build install-test
 	@echo "Quick test cycle completed!"
-
