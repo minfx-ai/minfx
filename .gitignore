@@ -160,3 +160,11 @@ cython_debug/
 *.iml
 *.ipr
 *.iws
+
+# Mock directories created by tests
+MagicMock/
+
+# Test artifacts from e2e tests
+tests/neptune_v2/e2e/artefacts/
+
+.neptune/

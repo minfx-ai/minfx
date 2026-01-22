@@ -1,0 +1,143 @@
+#
+# Copyright (c) 2022, Neptune Labs Sp. z o.o.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+from __future__ import annotations
+
+__all__ = ["OfflineNeptuneBackend"]
+
+from typing import (
+    TYPE_CHECKING,
+)
+
+from minfx.neptune_v2.exceptions import NeptuneOfflineModeFetchException
+from minfx.neptune_v2.internal.backends.neptune_backend_mock import NeptuneBackendMock
+
+if TYPE_CHECKING:
+    from minfx.neptune_v2.api.dtos import FileEntry
+    from minfx.neptune_v2.internal.artifacts.types import ArtifactFileData
+    from minfx.neptune_v2.internal.backends.api_model import (
+        ArtifactAttribute,
+        Attribute,
+        BoolAttribute,
+        DatetimeAttribute,
+        FileAttribute,
+        FloatAttribute,
+        FloatSeriesAttribute,
+        FloatSeriesValues,
+        ImageSeriesValues,
+        IntAttribute,
+        StringAttribute,
+        StringSeriesAttribute,
+        StringSeriesValues,
+        StringSetAttribute,
+    )
+    from minfx.neptune_v2.internal.container_type import ContainerType
+    from minfx.neptune_v2.typing import ProgressBarType
+
+
+class OfflineNeptuneBackend(NeptuneBackendMock):
+    WORKSPACE_NAME = "offline"
+
+    def get_attributes(self, container_id: str, container_type: ContainerType) -> list[Attribute]:
+        raise NeptuneOfflineModeFetchException
+
+    def get_float_attribute(self, container_id: str, container_type: ContainerType, path: list[str]) -> FloatAttribute:
+        raise NeptuneOfflineModeFetchException
+
+    def get_int_attribute(self, container_id: str, container_type: ContainerType, path: list[str]) -> IntAttribute:
+        raise NeptuneOfflineModeFetchException
+
+    def get_bool_attribute(self, container_id: str, container_type: ContainerType, path: list[str]) -> BoolAttribute:
+        raise NeptuneOfflineModeFetchException
+
+    def get_file_attribute(self, container_id: str, container_type: ContainerType, path: list[str]) -> FileAttribute:
+        raise NeptuneOfflineModeFetchException
+
+    def get_string_attribute(
+        self, container_id: str, container_type: ContainerType, path: list[str]
+    ) -> StringAttribute:
+        raise NeptuneOfflineModeFetchException
+
+    def get_datetime_attribute(
+        self, container_id: str, container_type: ContainerType, path: list[str]
+    ) -> DatetimeAttribute:
+        raise NeptuneOfflineModeFetchException
+
+    def get_artifact_attribute(
+        self, container_id: str, container_type: ContainerType, path: list[str]
+    ) -> ArtifactAttribute:
+        raise NeptuneOfflineModeFetchException
+
+    def list_artifact_files(self, project_id: str, artifact_hash: str) -> list[ArtifactFileData]:
+        raise NeptuneOfflineModeFetchException
+
+    def get_float_series_attribute(
+        self, container_id: str, container_type: ContainerType, path: list[str]
+    ) -> FloatSeriesAttribute:
+        raise NeptuneOfflineModeFetchException
+
+    def get_string_series_attribute(
+        self, container_id: str, container_type: ContainerType, path: list[str]
+    ) -> StringSeriesAttribute:
+        raise NeptuneOfflineModeFetchException
+
+    def get_string_set_attribute(
+        self, container_id: str, container_type: ContainerType, path: list[str]
+    ) -> StringSetAttribute:
+        raise NeptuneOfflineModeFetchException
+
+    def get_string_series_values(
+        self,
+        container_id: str,
+        container_type: ContainerType,
+        path: list[str],
+        offset: int,
+        limit: int,
+    ) -> StringSeriesValues:
+        raise NeptuneOfflineModeFetchException
+
+    def get_float_series_values(
+        self,
+        container_id: str,
+        container_type: ContainerType,
+        path: list[str],
+        offset: int,
+        limit: int,
+    ) -> FloatSeriesValues:
+        raise NeptuneOfflineModeFetchException
+
+    def get_image_series_values(
+        self,
+        container_id: str,
+        container_type: ContainerType,
+        path: list[str],
+        offset: int,
+        limit: int,
+    ) -> ImageSeriesValues:
+        raise NeptuneOfflineModeFetchException
+
+    def download_file_series_by_index(
+        self,
+        container_id: str,
+        container_type: ContainerType,
+        path: list[str],
+        index: int,
+        destination: str,
+        progress_bar: ProgressBarType | None,
+    ):
+        raise NeptuneOfflineModeFetchException
+
+    def list_fileset_files(self, attribute: list[str], container_id: str, path: str) -> list[FileEntry]:
+        raise NeptuneOfflineModeFetchException

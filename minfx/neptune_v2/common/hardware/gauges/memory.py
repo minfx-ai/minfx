@@ -1,0 +1,62 @@
+#
+# Copyright (c) 2019, Neptune Labs Sp. z o.o.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+from __future__ import annotations
+
+from minfx.neptune_v2.common.hardware.cgroup.cgroup_monitor import CGroupMonitor
+from minfx.neptune_v2.common.hardware.constants import BYTES_IN_ONE_GB
+from minfx.neptune_v2.common.hardware.gauges.gauge import Gauge
+from minfx.neptune_v2.common.hardware.system.system_monitor import SystemMonitor
+
+
+class SystemMemoryUsageGauge(Gauge):
+    def __init__(self):
+        self.__system_monitor = SystemMonitor()
+
+    def name(self) -> str:
+        return "ram"
+
+    def value(self) -> float | None:
+        virtual_mem = self.__system_monitor.virtual_memory()
+        return (virtual_mem.total - virtual_mem.available) / float(BYTES_IN_ONE_GB)
+
+    def __eq__(self, other: object) -> bool:
+        return self.__class__ == other.__class__
+
+    def __hash__(self) -> int:
+        return hash(self.__class__.__name__)
+
+    def __repr__(self) -> str:
+        return "SystemMemoryUsageGauge"
+
+
+class CGroupMemoryUsageGauge(Gauge):
+    def __init__(self):
+        self.__cgroup_monitor = CGroupMonitor.create()
+
+    def name(self) -> str:
+        return "ram"
+
+    def value(self) -> float | None:
+        return self.__cgroup_monitor.get_memory_usage_in_bytes() / float(BYTES_IN_ONE_GB)
+
+    def __eq__(self, other: object) -> bool:
+        return self.__class__ == other.__class__
+
+    def __hash__(self) -> int:
+        return hash(self.__class__.__name__)
+
+    def __repr__(self) -> str:
+        return "CGroupMemoryUsageGauge"

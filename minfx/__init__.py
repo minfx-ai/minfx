@@ -1,10 +1,9 @@
-"""
-MinFX.
+"""MinFX.
 
 This package provides core functionality for the minfx system.
 """
 
-from importlib.metadata import version, PackageNotFoundError
+from importlib.metadata import PackageNotFoundError, version
 
 try:
     __version__ = version("minfx")

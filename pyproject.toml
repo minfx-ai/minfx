@@ -7,14 +7,13 @@ name = "minfx"
 dynamic = ["version"]
 description = "A minimal Python package for the minfx project"
 readme = "README.md"
-license = { text = "MIT" }
+license = "MIT"
 authors = [{ name = "Minfx Team", email = "team@minfx.ai" }]
 maintainers = [{ name = "Minfx Team", email = "team@minfx.ai" }]
 keywords = ["minfx"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.8",
@@ -24,15 +23,51 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
 ]
 requires-python = ">=3.8"
-dependencies = ["neptune", "neptune-scale"]
+dependencies = [
+    "neptune-scale",
+    # Dependencies for bundled neptune_v2 (from neptune_v2/pyproject.toml):
+    "typing-extensions>=3.10.0",
+    "six>=1.12.0",
+    "future>=0.17.1",
+    "packaging",
+    "click>=7.0",
+    "bravado>=11.0.0",
+    "oauthlib>=2.1.0",
+    "PyJWT",
+    "requests>=2.20.0",
+    "requests-oauthlib>=1.0.0",
+    "websocket-client>=0.35.0,!=1.0.0",
+    "urllib3",
+    "swagger-spec-validator>=2.7.4",
+    "boto3>=1.28.0",
+    "Pillow>=1.1.6",
+    "GitPython>=2.0.8",
+    "psutil",
+    "pandas",
+]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=6.0",
     "pytest-cov>=2.0",
-    "black>=21.0",
-    "flake8>=3.8",
-    "mypy>=0.800",
+    "pytest-mock",
+    "pytest-xdist",    # For parallel test execution (-n auto)
+    "pytest-asyncio",
+    "ruff>=0.8.0",     # Fast Python linter and formatter (replaces black, flake8, isort)
+    "mypy>=1.0",
+    # Additional test dependencies for neptune_v2 tests:
+    "mock",
+    "freezegun",
+    "matplotlib",
+    "munch",
+    "moto",
+    "altair",
+    "bokeh",
+    "plotly",
+    "seaborn",
+    "vega_datasets",
+    "torch",
+    "faker",         # For e2e tests
 ]
 
 [project.urls]
@@ -40,18 +75,273 @@ Homepage = "https://github.com/minfx-ai/minfx"
 Repository = "https://github.com/minfx-ai/minfx"
 "Bug Reports" = "https://github.com/minfx-ai/minfx/issues"
 
+[project.scripts]
+minfx = "minfx.neptune_v2.cli.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["minfx*"]
+exclude = ["MagicMock*", "tests*"]
+
 [tool.setuptools.dynamic]
 version = { file = "VERSION" }
 
-[tool.black]
+[tool.ruff]
+# Match existing line length
 line-length = 120
-target-version = ['py38']
+# Target Python 3.8+
+target-version = "py38"
+# Include all Python files
+include = ["*.py", "*.pyi"]
+# Exclude generated/vendored files
+exclude = [
+    ".git",
+    ".venv",
+    "__pycache__",
+    "build",
+    "dist",
+    "*.egg-info",
+    "minfx/neptune_v2/vendor/*", # Skip vendored code
+]
+
+[tool.ruff.lint]
+# Enable strict linting rules
+select = [
+    "E",     # pycodestyle errors
+    "W",     # pycodestyle warnings
+    "F",     # Pyflakes
+    "I",     # isort
+    "N",     # pep8-naming
+    "D",     # pydocstring
+    "UP",    # pyupgrade
+    "YTT",   # flake8-2020
+    "ANN",   # flake8-annotations (type hints)
+    "ASYNC", # flake8-async
+    "S",     # flake8-bandit (security)
+    "BLE",   # flake8-blind-except
+    "FBT",   # flake8-boolean-trap
+    "B",     # flake8-bugbear
+    "A",     # flake8-builtins
+    "COM",   # flake8-commas
+    "C4",    # flake8-comprehensions
+    "DTZ",   # flake8-datetimez
+    "T10",   # flake8-debugger
+    "EM",    # flake8-errmsg
+    "EXE",   # flake8-executable
+    "FA",    # flake8-future-annotations
+    "ISC",   # flake8-implicit-str-concat
+    "ICN",   # flake8-import-conventions
+    "LOG",   # flake8-logging
+    "G",     # flake8-logging-format
+    "INP",   # flake8-no-pep420
+    "PIE",   # flake8-pie
+    "T20",   # flake8-print
+    "PYI",   # flake8-pyi
+    "PT",    # flake8-pytest-style
+    "Q",     # flake8-quotes
+    "RSE",   # flake8-raise
+    "RET",   # flake8-return
+    "SLF",   # flake8-self
+    "SLOT",  # flake8-slots
+    "SIM",   # flake8-simplify
+    "TID",   # flake8-tidy-imports
+    "TCH",   # flake8-type-checking
+    "INT",   # flake8-gettext
+    "ARG",   # flake8-unused-arguments
+    "PTH",   # flake8-use-pathlib
+    "TD",    # flake8-todos
+    "FIX",   # flake8-fixme
+    "ERA",   # eradicate (commented-out code)
+    "PD",    # pandas-vet
+    "PGH",   # pygrep-hooks
+    "PL",    # Pylint
+    "TRY",   # tryceratops
+    "FLY",   # flynt
+    "NPY",   # NumPy-specific rules
+    "PERF",  # Perflint
+    "FURB",  # refurb
+    "RUF",   # Ruff-specific rules
+]
+
+ignore = [
+    # Allow missing docstrings in some places (can be enabled incrementally)
+    "D100", # Missing docstring in public module
+    "D101", # Missing docstring in public class
+    "D102", # Missing docstring in public method
+    "D103", # Missing docstring in public function
+    "D104", # Missing docstring in public package
+    "D105", # Missing docstring in magic method
+    "D107", # Missing docstring in __init__
+    "D203", # 1 blank line required before class docstring (conflicts with D211)
+    "D213", # Multi-line docstring summary should start at the second line (conflicts with D212)
+
+    # Allow some flexibility for legacy code
+    "ANN401", # Dynamically typed expressions (Any) are disallowed (too strict for legacy)
+
+    # Allow print statements in CLI tools (can be more selective)
+    "T201", # print found
+
+    # Security checks that may be too noisy for tests
+    "S101", # assert used (needed for tests)
+    "S311", # pseudo-random generators (okay for non-crypto)
+
+    # Some rules conflict or are too pedantic
+    "COM812", # Trailing comma missing (conflicts with ruff formatter)
+    "ISC001", # Implicitly concatenated string literals (conflicts with ruff formatter)
+    "TD002",  # Missing author in TODO
+    "TD003",  # Missing issue link in TODO
+    "FIX002", # Line contains TODO (we handle this separately)
+
+    # Allow boolean positional args in some cases (legacy API compatibility)
+    "FBT001", # Boolean positional arg in function definition
+    "FBT002", # Boolean default value in function definition
+
+    # PLR rules that can be too strict
+    "PLR0911", # Too many return statements
+    "PLR0912", # Too many branches
+    "PLR0913", # Too many arguments to function call
+    "PLR0915", # Too many statements
+    "PLR2004", # Magic value used in comparison
+
+    # TRY rules that are too restrictive
+    "TRY003", # Avoid specifying long messages outside exception class
+    "TRY400", # Use logging.exception instead of logging.error
+
+    # EM rules that are too verbose
+    "EM101", # Exception must not use a string literal
+    "EM102", # Exception must not use an f-string literal
+
+    # RET504 - unnecessary assignment before return (sometimes improves readability)
+    "RET504",
+
+    # SIM108 - ternary operator (sometimes if/else is clearer)
+    "SIM108",
+
+    # ARG rules for unused arguments (often needed for API compatibility)
+    "ARG001", # Unused function argument
+    "ARG002", # Unused method argument
+]
+
+# Per-file ignores for tests and specific modules
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = [
+    "S",       # Security checks not needed in tests
+    "PLR2004", # Magic values allowed in tests
+    "ANN",     # Type annotations optional in tests
+    "D",       # Docstrings optional in tests
+    "SLF001",  # Private member access allowed in tests
+    "ARG",     # Unused arguments allowed in tests (fixtures)
+    "E402",    # Module import not at top (test setup)
+    "E501",    # Line too long (test data can be long)
+    "PLC0415", # Import outside top level (test setup)
+    "PT",      # Pytest style rules (legacy test code)
+    "B017",    # Assert raises exception (legacy test style)
+    "BLE001",  # Blind except (test error handling)
+    "DTZ",     # Datetime timezone (test code)
+    "NPY002",  # Numpy legacy random (test code)
+    "FBT003",  # Boolean positional value (test code)
+    "ERA001",  # Commented out code (test debugging)
+    "SIM117",  # Multiple with statements (test code)
+    "PYI063",  # PEP484 style positional only (test code)
+    "RUF043",  # Pytest raises ambiguous pattern (test code)
+    "FIX001",  # Line contains FIXME (test TODOs)
+    "TD",      # TODO formatting (test TODOs)
+    "TRY",     # Try/except style (test code)
+    "N806",    # Non-lowercase variable (test code)
+    "N815",    # Mixed case variable (test code)
+    "PGH004",  # Blanket noqa (test code)
+    "PYI024",  # Collections namedtuple (test code)
+    "B018",    # Useless expression (test code)
+    "F821",    # Undefined name (test code with dynamic imports)
+]
+"minfx/neptune_v3.py" = [
+    "F401", # Imported but unused (re-export module)
+    "F403", # Star imports
+    "E402", # Module level import not at top
+]
+"minfx/neptune_v2/__init__.py" = [
+    "F401", # Imported but unused (re-export module)
+]
+"minfx/neptune_v2/**/*.py" = [
+    "ALL", # Ignore all lints for legacy neptune_v2 code - it's vendored/legacy
+]
+"**/cli/**/*.py" = [
+    "T201", # print allowed in CLI
+]
+"conftest.py" = [
+    "ANN", # Type annotations optional in conftest
+    "D",   # Docstrings optional in conftest
+]
+
+[tool.ruff.lint.isort]
+# Match import sorting preferences
+known-first-party = ["minfx"]
+section-order = [
+    "future",
+    "standard-library",
+    "third-party",
+    "first-party",
+    "local-folder",
+]
+combine-as-imports = true
+force-sort-within-sections = true
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.flake8-annotations]
+# Allow missing return type for functions that return None
+suppress-none-returning = true
+# Allow Any type in legacy code
+allow-star-arg-any = true
+
+[tool.ruff.lint.flake8-pytest-style]
+fixture-parentheses = false
+mark-parentheses = false
+
+[tool.ruff.lint.pylint]
+max-args = 10
+max-branches = 15
+max-returns = 8
+max-statements = 60
+
+[tool.ruff.format]
+# Use double quotes for strings
+quote-style = "double"
+# Use spaces for indentation
+indent-style = "space"
+# Respect magic trailing comma
+skip-magic-trailing-comma = false
+# Unix line endings
+line-ending = "lf"
+# Format docstrings
+docstring-code-format = true
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.9"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = false
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+show_error_codes = true
+# Ignore missing imports for third-party packages without stubs
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "bokeh.*"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = "minfx.neptune_v2.vendor.*"
+ignore_errors = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -60,4 +350,13 @@ python_classes = ["Test*"]
 python_functions = ["test_*"]
 filterwarnings = [
     "ignore:jsonschema.RefResolver is deprecated:DeprecationWarning",
+    "ignore::pytest.PytestUnhandledThreadExceptionWarning",
+    "ignore::pytest.PytestUnraisableExceptionWarning",
+    "ignore:This process .* is multi-threaded, use of fork:DeprecationWarning",
+    # Expected NeptuneWarnings from tests that verify warning behavior
+    "ignore:Column test_column contains more than one simple data type:minfx.neptune_v2.common.warnings.NeptuneWarning",
+    "ignore:Encountered disk issue:minfx.neptune_v2.common.warnings.NeptuneWarning",
+    "ignore:To use the default progress bar, please install tqdm:minfx.neptune_v2.common.warnings.NeptuneWarning",
+    "ignore:Disk usage is at 100%:minfx.neptune_v2.common.warnings.NeptuneWarning",
+    "ignore::minfx.neptune_v2.common.warnings.NeptuneUnsupportedValue",
 ]
