@@ -17,22 +17,15 @@ from __future__ import annotations
 
 __all__ = ["FloatSeries"]
 
-from itertools import cycle
 import time
 from typing import (
     TYPE_CHECKING,
-    Callable,
     Iterable,
     Sequence,
     TypeVar,
 )
 
-from minfx.neptune_v2.common.warnings import (
-    NeptuneUnsupportedValue,
-    warn_once,
-)
 from minfx.neptune_v2.internal.types.stringify_value import extract_if_stringify_value
-from minfx.neptune_v2.internal.types.utils import is_unsupported_float
 from minfx.neptune_v2.internal.utils import is_collection
 from minfx.neptune_v2.types.series.series import Series
 
@@ -57,30 +50,24 @@ class FloatSeries(Series):
         if not is_collection(values):
             raise TypeError("`values` is not a collection")
 
+        # Convert values to float (supports NaN, Inf, -Inf)
         self._values = [float(value) for value in values]
         self._min = min
         self._max = max
         self._unit = unit
 
         if steps is None:
-            filled_steps = cycle([None])
+            self._steps = [None] * len(self._values)
         else:
             assert len(values) == len(steps)
-            filled_steps = steps
+            self._steps = list(steps)
 
         if timestamps is None:
-            filled_timestamps = cycle([time.time()])
+            current_time = time.time()
+            self._timestamps = [current_time] * len(self._values)
         else:
             assert len(values) == len(timestamps)
-            filled_timestamps = timestamps
-
-        clean_values, self._steps, self._timestamps = self.filter_unsupported_values(
-            values=values,
-            steps=filled_steps,
-            timestamps=filled_timestamps,
-            filter_by=self.is_unsupported_float_with_warn,
-        )
-        self._values = [float(value) for value in clean_values]
+            self._timestamps = list(timestamps)
 
     @property
     def steps(self) -> list[float | None]:
@@ -111,29 +98,3 @@ class FloatSeries(Series):
 
     def __str__(self) -> str:
         return f"FloatSeries({self.values!s})"
-
-    def is_unsupported_float_with_warn(self, value: float) -> bool:
-        if is_unsupported_float(value):
-            warn_once(
-                message=f"WARNING: A value you're trying to log (`{value!s}`) will be skipped because "
-                f"it's a non-standard float value that is not currently supported.",
-                exception=NeptuneUnsupportedValue,
-            )
-            return False
-        return True
-
-    def filter_unsupported_values(
-        self,
-        values: Iterable[float],
-        steps: Iterable[float | None],
-        timestamps: Iterable[float],
-        filter_by: Callable[[float], bool],
-    ) -> tuple[list[float], list[float | None], list[float]]:
-        filtered = [
-            (value, step, timestamp) for value, step, timestamp in zip(values, steps, timestamps) if filter_by(value)
-        ]
-        return (
-            [value for value, _, _ in filtered],
-            [step for _, step, _ in filtered],
-            [timestamp for _, _, timestamp in filtered],
-        )

@@ -27,6 +27,7 @@ from minfx.neptune_v2.internal.operation import (
     ClearStringSet,
     RemoveStrings,
 )
+from minfx.neptune_v2.internal.types.neptune_sdk_compat import check_not_neptune_sdk_string_set
 from minfx.neptune_v2.internal.utils import (
     is_collection,
     verify_collection_type,
@@ -37,6 +38,9 @@ from minfx.neptune_v2.types.sets.string_set import StringSet as StringSetVal
 
 class StringSet(Set):
     def assign(self, value: StringSetVal | Iterable[str], *, wait: bool = False):
+        # Check for Neptune SDK StringSet first
+        check_not_neptune_sdk_string_set(value)
+
         # Accept both StringSetVal and plain list/set/tuple of strings
         if isinstance(value, StringSetVal):
             values = value.values
@@ -55,6 +59,9 @@ class StringSet(Set):
                 self._enqueue_operation(AddStrings(self._path, values), wait=wait)
 
     def add(self, values: str | Iterable[str], *, wait: bool = False):
+        # Check for Neptune SDK StringSet first
+        check_not_neptune_sdk_string_set(values)
+
         values = self._to_proper_value_type(values)
         with self._container.lock():
             self._enqueue_operation(AddStrings(self._path, set(values)), wait=wait)

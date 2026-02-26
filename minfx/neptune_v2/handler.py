@@ -48,6 +48,13 @@ from minfx.neptune_v2.exceptions import (
     NeptuneCannotChangeStageManually,
     NeptuneUserApiInputException,
 )
+from minfx.neptune_v2.internal.types.neptune_sdk_compat import (
+    check_not_neptune_sdk_file,
+    is_neptune_sdk_file_series,
+    is_neptune_sdk_series,
+    warn_neptune_sdk_file_series,
+    warn_neptune_sdk_series,
+)
 from minfx.neptune_v2.internal.types.stringify_value import StringifyValue
 from minfx.neptune_v2.internal.utils import (
     is_collection,
@@ -326,6 +333,12 @@ class Handler(SupportsNamespaces):
         verify_type("step", step, (int, float, type(None)))
         verify_type("timestamp", timestamp, (int, float, type(None)))
 
+        # Check for Neptune SDK series types (warn but allow)
+        if is_neptune_sdk_series(value):
+            warn_neptune_sdk_series(value)
+        if is_neptune_sdk_file_series(value):
+            warn_neptune_sdk_file_series(value)
+
         with self._container.lock():
             attr = self._container.get_attribute(self._path)
             if attr is None:
@@ -340,6 +353,9 @@ class Handler(SupportsNamespaces):
                         raise ValueError("Cannot deduce value type: `value` cannot be empty")
                 else:
                     first_value = value
+
+                # Check for Neptune SDK File type in the value to log
+                check_not_neptune_sdk_file(first_value)
 
                 if is_float(first_value):
                     attr = FloatSeries(self._container, parse_path(self._path))

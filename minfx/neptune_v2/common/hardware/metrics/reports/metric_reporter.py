@@ -39,20 +39,22 @@ class MetricReporter:
         return [
             MetricReport(
                 metric=metric,
-                values=[x for x in [self.__metric_value_for_gauge(gauge, timestamp) for gauge in metric.gauges] if x],
+                values=[
+                    x
+                    for x in [self.__metric_value_for_gauge(gauge, timestamp) for gauge in metric.gauges]
+                    if x is not None
+                ],
             )
             for metric in self.__metrics
         ]
 
     def __metric_value_for_gauge(self, gauge: Gauge, timestamp: float) -> MetricValue | None:
         value = gauge.value()
-        return (
-            MetricValue(
-                timestamp=timestamp,
-                running_time=timestamp - self.__reference_timestamp,
-                gauge_name=gauge.name(),
-                value=value,
-            )
-            if value
-            else None
+        if value is None:
+            return None
+        return MetricValue(
+            timestamp=timestamp,
+            running_time=timestamp - self.__reference_timestamp,
+            gauge_name=gauge.name(),
+            value=value,
         )

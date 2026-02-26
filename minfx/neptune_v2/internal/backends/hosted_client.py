@@ -21,6 +21,7 @@ __all__ = [
     "create_backend_client",
     "create_http_client_with_auth",
     "create_leaderboard_client",
+    "get_backend_min_client_version",
 ]
 
 import contextlib
@@ -29,6 +30,9 @@ import platform
 from typing import (
     TYPE_CHECKING,
 )
+
+import requests as requests_lib
+from packaging.version import Version
 
 from bravado.requests_client import RequestsClient
 
@@ -148,6 +152,67 @@ def get_client_config(
     if not client_config.version_info:
         raise NeptuneClientUpgradeRequiredError(neptune_client_version, max_version="0.4.111")
     return client_config
+
+
+def _is_minfx_backend(api_url: str) -> bool:
+    """Check if the backend is a minfx backend (not neptune.ai)."""
+    return "neptune.ai" not in api_url
+
+
+def get_backend_min_client_version(
+    api_url: str,
+    ssl_verify: bool,
+    proxies: dict[str, str] | None,
+) -> Version | None:
+    """Fetch minimum client version required by the backend.
+
+    Only fetches for minfx backends (not neptune.ai).
+
+    Returns:
+        The minimum required version, or None if the backend doesn't support
+        this endpoint or an error occurred.
+    """
+    if not _is_minfx_backend(api_url):
+        return None
+
+    try:
+        url = build_operation_url(api_url, "/min_client_version")
+        response = requests_lib.get(
+            url,
+            verify=ssl_verify,
+            proxies=proxies,
+            timeout=5,
+        )
+        if response.ok:
+            version_str = response.text.strip()
+            # Skip placeholder values (not yet replaced during deployment)
+            if len(version_str) != 5:
+                return None
+            if not version_str[0].isdigit():
+                return None
+            return Version(version_str)
+    except Exception:
+        # Backend might not support this endpoint yet, or network issues
+        pass
+    return None
+
+
+def verify_backend_min_client_version(
+    api_url: str,
+    ssl_verify: bool,
+    proxies: dict[str, str] | None,
+    client_version: Version,
+) -> None:
+    """Check if the client version satisfies the backend's minimum requirement.
+
+    Only checks for minfx backends (not neptune.ai).
+
+    Raises:
+        NeptuneClientUpgradeRequiredError: If the client version is too old.
+    """
+    min_version = get_backend_min_client_version(api_url, ssl_verify, proxies)
+    if min_version is not None and client_version < min_version:
+        raise NeptuneClientUpgradeRequiredError(client_version, min_version=min_version)
 
 
 @cache

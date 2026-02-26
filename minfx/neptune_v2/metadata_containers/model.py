@@ -122,6 +122,12 @@ class Model(MetadataContainer):
             object was initialized. If a no-progress callback (default callback enabled via environment variable or
             custom callback passed to the `async_no_progress_callback` argument) is enabled, the callback is called
             when this duration is exceeded.
+        log_level: Log level for the Neptune client logger (e.g., `logging.WARNING` to reduce verbosity,
+            `logging.ERROR` for minimal output, or `logging.CRITICAL + 1` to silence completely).
+            If None, the default INFO level is used.
+        fail_on_error: If True, raises NeptuneOperationsError when stop() is called if any operations
+            failed during async processing. Useful for tests to catch server errors.
+            Defaults to False.
 
     Returns:
         Model object that is used to manage the model and log metadata to it.
@@ -182,6 +188,8 @@ class Model(MetadataContainer):
         async_lag_threshold: float = ASYNC_LAG_THRESHOLD,
         async_no_progress_callback: NeptuneObjectCallback | None = None,
         async_no_progress_threshold: float = ASYNC_NO_PROGRESS_THRESHOLD,
+        log_level: int | None = None,
+        fail_on_error: bool = False,
     ):
         verify_type("with_id", with_id, (str, type(None)))
         verify_type("name", name, (str, type(None)))
@@ -215,6 +223,8 @@ class Model(MetadataContainer):
             async_lag_threshold=async_lag_threshold,
             async_no_progress_callback=async_no_progress_callback,
             async_no_progress_threshold=async_no_progress_threshold,
+            log_level=log_level,
+            fail_on_error=fail_on_error,
         )
 
     def _get_or_create_api_object(self) -> ApiExperiment:

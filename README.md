@@ -1,7 +1,17 @@
 # Minfx
 
-Neptune just announced the shutdown of its services.
+Neptune [announced the shutdown of its services](https://docs.neptune.ai/transition_hub/). 
 
+[Minfx](https://minfx.ai) is your solution.
+
+We're the fastest experiment tracker on the market, built specifically as a drop-in replacement for Neptune. We offer:
+
+- **One-line code change** - same APIs, instant compatibility
+- **Automatic data migration** - we'll transfer your data for you
+- **High-performance UI** - >60 FPS rendering for smooth interactions
+- **Multi-backend support** - extra reliability and redundancy
+
+## Quick Start
 Drop-in Replacement: just change
 
 ```
@@ -12,18 +22,7 @@ to
 import minfx.neptune_v2 as neptune
 ```
 
-or
-
-```
-import neptune_scale
-```
-to
-```
-import minfx.neptune_v3 as neptune_scale
-```
-
-
-We will later publish how to generate new API token and sign up to the service.
+Go to https://minfx.ai to learn more.
 
 ---
-932aeafe 2026-01-22T01:15:37
+c119ad1e 2026-02-26T16:14:31

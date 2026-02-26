@@ -20,6 +20,7 @@ __all__ = [
     "get_unique_upload_entries",
     "upload_file_attribute",
     "upload_file_set_attribute",
+    "HashMismatchError",
 ]
 
 import collections
@@ -89,11 +90,28 @@ from minfx.neptune_v2.internal.utils.logger import get_logger
 if TYPE_CHECKING:
     from bravado.requests_client import RequestsClient
 
+    from minfx.neptune_v2.internal.operation_processors.upload_tracker import UploadTracker
     from minfx.neptune_v2.typing import ProgressBarType
 
 logger = get_logger()
 DEFAULT_CHUNK_SIZE = 5 * BYTES_IN_ONE_MB
 DEFAULT_UPLOAD_CONFIG = AttributeUploadConfiguration(chunk_size=DEFAULT_CHUNK_SIZE)
+
+# Maximum retries for hash mismatch (data corruption in transit)
+MAX_HASH_MISMATCH_RETRIES = 3
+
+
+class HashMismatchError(NeptuneException):
+    """Raised when the server reports a content hash mismatch.
+
+    This indicates data corruption during upload and should trigger a retry.
+    """
+
+    def __init__(self, filename: str, expected: str, actual: str) -> None:
+        self.filename = filename
+        self.expected = expected
+        self.actual = actual
+        super().__init__(f"Hash mismatch for '{filename}': expected {expected}, got {actual}")
 
 
 class FileUploadTarget(enum.Enum):
@@ -108,7 +126,23 @@ def upload_file_attribute(
     source: str | bytes,
     ext: str,
     multipart_config: MultipartConfig | None,
+    upload_tracker: UploadTracker | None = None,
 ) -> list[NeptuneException]:
+    """Upload a file attribute with optional content-hash deduplication.
+
+    Args:
+        swagger_client: The Swagger client wrapper.
+        container_id: The experiment identifier.
+        attribute: The attribute path.
+        source: File path (str) or bytes content.
+        ext: File extension.
+        multipart_config: Multipart upload configuration.
+        upload_tracker: Optional tracker for minfx backends (enables dedup).
+                        Pass None for neptune.ai backends.
+
+    Returns:
+        List of errors encountered during upload (empty on success).
+    """
     if isinstance(source, str) and not Path(source).is_file():
         return [FileUploadError(source, "Path not found or is a not a file.")]
 
@@ -116,21 +150,53 @@ def upload_file_attribute(
     if ext:
         target += "." + ext
 
+    # Compute content hash once upfront (for minfx backends)
+    # This hash is used for both client-side skip check and server verification
+    content_hash: str | None = None
+    if upload_tracker is not None:
+        if isinstance(source, str):
+            content_hash = upload_tracker.compute_hash_streaming(source)
+        else:
+            content_hash = upload_tracker.compute_hash(source)
+
+        # Check if already uploaded in this session (client-side dedup)
+        if upload_tracker.is_uploaded(attribute, content_hash):
+            logger.debug(
+                "Skipping upload for %s: hash %s already uploaded",
+                attribute,
+                content_hash,
+            )
+            return []
+
     try:
         upload_entry = UploadEntry(source if isinstance(source, str) else BytesIO(source), target)
+
+        # Build query params
+        query_params = {
+            "experimentIdentifier": container_id,
+            "attribute": attribute,
+            "ext": ext,
+        }
+        # Only include contentHash for minfx backends (upload_tracker is set)
+        if content_hash:
+            query_params["contentHash"] = content_hash
+
         _multichunk_upload_with_retry(
             upload_entry,
-            query_params={
-                "experimentIdentifier": container_id,
-                "attribute": attribute,
-                "ext": ext,
-            },
+            query_params=query_params,
             swagger_client=swagger_client,
             multipart_config=multipart_config,
             target=FileUploadTarget.FILE_ATOM,
+            content_hash=content_hash,  # Passed for hash verification on finish
         )
+
+        # Mark as uploaded in tracker (client-side dedup for future uploads)
+        if upload_tracker is not None and content_hash is not None:
+            upload_tracker.mark_uploaded(attribute, content_hash)
+
     except MetadataInconsistency as e:
         return [e]
+    return []
 
 
 def upload_file_set_attribute(
@@ -217,6 +283,13 @@ def get_unique_upload_entries(file_globs: Iterable[str]) -> set[UploadEntry]:
 
 
 def _attribute_upload_response_handler(result: bytes) -> None:
+    """Handle upload response, checking for errors.
+
+    Raises:
+        HashMismatchError: If server reports hash mismatch (should retry).
+        MetadataInconsistency: If server reports other metadata errors.
+        InternalClientError: If response format is unexpected.
+    """
     try:
         parsed = json.loads(result)
     except json.JSONDecodeError:
@@ -226,6 +299,28 @@ def _attribute_upload_response_handler(result: bytes) -> None:
         # old format with empty optional error
         return
     if isinstance(parsed, dict):
+        # Check for hash mismatch error
+        if parsed.get("code") == "HASH_MISMATCH":
+            # Extract details from error response
+            message = parsed.get("message", "")
+            # Parse "Content hash mismatch for 'filename': expected xxx, got yyy"
+            filename = "unknown"
+            expected = "unknown"
+            actual = "unknown"
+            if "'" in message:
+                try:
+                    filename = message.split("'")[1]
+                except IndexError:
+                    pass
+            if "expected" in message and "got" in message:
+                try:
+                    parts = message.split("expected ")[1].split(", got ")
+                    expected = parts[0]
+                    actual = parts[1] if len(parts) > 1 else "unknown"
+                except (IndexError, KeyError):
+                    pass
+            raise HashMismatchError(filename, expected, actual)
+
         if "errorDescription" in parsed:
             # old format with optional error
             raise MetadataInconsistency(parsed["errorDescription"])
@@ -284,13 +379,39 @@ def _multichunk_upload_with_retry(
     query_params: dict,
     multipart_config: MultipartConfig | None,
     target: FileUploadTarget,
+    content_hash: str | None = None,
 ) -> None:
+    """Upload with retry on file change or hash mismatch."""
     urlset = _build_multipart_urlset(swagger_client, target)
+    hash_mismatch_retries = 0
+
     while True:
         try:
-            return _multichunk_upload(upload_entry, swagger_client, query_params, multipart_config, urlset)
+            return _multichunk_upload(
+                upload_entry,
+                swagger_client,
+                query_params,
+                multipart_config,
+                urlset,
+                content_hash=content_hash,
+            )
         except UploadedFileChanged as e:
             logger.error(str(e))
+        except HashMismatchError as e:
+            hash_mismatch_retries += 1
+            if hash_mismatch_retries < MAX_HASH_MISMATCH_RETRIES:
+                logger.warning(
+                    "Hash mismatch on attempt %d, retrying: %s",
+                    hash_mismatch_retries,
+                    e,
+                )
+            else:
+                logger.error(
+                    "Hash mismatch after %d attempts, possible persistent network issue: %s",
+                    MAX_HASH_MISMATCH_RETRIES,
+                    e,
+                )
+                raise
 
 
 def _multichunk_upload(
@@ -299,7 +420,18 @@ def _multichunk_upload(
     query_params: dict,
     multipart_config: MultipartConfig | None,
     urlset: MultipartUrlSet,
+    content_hash: str | None = None,
 ) -> None:
+    """Upload a file, handling single vs multipart based on size.
+
+    Args:
+        upload_entry: The file to upload.
+        swagger_client: Swagger client wrapper.
+        query_params: Query parameters for the upload request.
+        multipart_config: Multipart upload configuration.
+        urlset: URLs for the upload endpoints.
+        content_hash: Optional xxHash64 for server-side verification (minfx backends only).
+    """
     if multipart_config is None:
         multipart_config = MultipartConfig.get_default()
 
@@ -307,7 +439,7 @@ def _multichunk_upload(
     entry_length = upload_entry.length()
     try:
         if entry_length <= multipart_config.max_single_part_size:
-            # single upload
+            # single upload (query_params already includes contentHash if set)
             data = file_stream.read()
             result = upload_raw_data(
                 http_client=swagger_client.swagger_spec.http_client,
@@ -325,6 +457,8 @@ def _multichunk_upload(
             no_ext_query_params = query_params.copy()
             if "ext" in no_ext_query_params:
                 del no_ext_query_params["ext"]
+            # Don't send contentHash with each part, only with finish
+            no_ext_query_params.pop("contentHash", None)
 
             upload_id = result.uploadId
             chunker = FileChunker(
@@ -347,7 +481,12 @@ def _multichunk_upload(
                 )
                 _attribute_upload_response_handler(result)
 
-            result = urlset.finish_chunked(**no_ext_query_params, uploadId=upload_id).response().result
+            # Build finish params (include contentHash for minfx backends)
+            finish_params = {**no_ext_query_params, "uploadId": upload_id}
+            if content_hash:
+                finish_params["contentHash"] = content_hash
+
+            result = urlset.finish_chunked(**finish_params).response().result
             if result.errors:
                 raise MetadataInconsistency([err.errorDescription for err in result.errors])
         return []

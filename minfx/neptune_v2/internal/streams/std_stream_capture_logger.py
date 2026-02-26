@@ -30,12 +30,20 @@ if TYPE_CHECKING:
 
 
 class StdStreamCaptureLogger:
+    """Captures stdout/stderr and logs complete lines to Neptune.
+
+    Uses line buffering to ensure each log entry contains a complete line,
+    rather than fragmenting output (e.g., "hello" and "\\n" as separate entries).
+    """
+
     def __init__(self, container: MetadataContainer, attribute_name: str, stream: TextIO):
         self._logger = NeptuneLogger(container, attribute_name)
         self.stream = stream
         self._thread_local = threading.local()
         self.enabled = True
-        self._log_data_queue = Queue()
+        self._log_data_queue: Queue[str | None] = Queue()
+        self._line_buffer = ""
+        self._buffer_lock = threading.Lock()
         self._logging_thread = self.ReportingThread(self, "NeptuneThread_" + attribute_name)
         self._logging_thread.start()
 
@@ -47,8 +55,25 @@ class StdStreamCaptureLogger:
         self._logging_thread.resume()
 
     def write(self, data: str) -> None:
+        """Write data to stream and queue complete lines for logging.
+
+        Buffers partial lines until a newline is received, then queues
+        each complete line as a single entry.
+        """
         self.stream.write(data)
-        self._log_data_queue.put_nowait(data)
+
+        with self._buffer_lock:
+            self._line_buffer += data
+            while "\n" in self._line_buffer:
+                line, self._line_buffer = self._line_buffer.split("\n", 1)
+                self._log_data_queue.put_nowait(line + "\n")
+
+    def flush_buffer(self) -> None:
+        """Flush any remaining buffered content to the queue."""
+        with self._buffer_lock:
+            if self._line_buffer:
+                self._log_data_queue.put_nowait(self._line_buffer)
+                self._line_buffer = ""
 
     def __getattr__(self, attr: str) -> object:
         return getattr(self.stream, attr)
@@ -57,6 +82,7 @@ class StdStreamCaptureLogger:
         if self.enabled:
             self._logging_thread.interrupt()
         self.enabled = False
+        self.flush_buffer()
         self._log_data_queue.put_nowait(None)
         self._logging_thread.join()
 

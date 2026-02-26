@@ -16,6 +16,7 @@ The internal backends module implements the communication layer between the Nept
 - `factory.py`: Factory for creating backend instances
 - `api_model.py`: API data models
 - `operations_preprocessor.py`: Operation preprocessing logic
+- `operation_api_object_converter.py`: Converts operations to JSON-serializable dicts
 - `swagger_client_wrapper.py`: Wrapper for OpenAPI/Swagger client
 
 ## Functionality
@@ -28,6 +29,22 @@ This module provides:
 - Project and experiment management
 - NQL (Neptune Query Language) support
 
+## Special Float Encoding
+
+The `operation_api_object_converter.py` module encodes IEEE 754 special float values
+as strings for JSON serialization:
+
+| Value | JSON String |
+|-------|-------------|
+| Standard NaN | `"NaN"` |
+| Custom NaN | `"NaN(bits)"` |
+| +Infinity | `"PosInf"` |
+| -Infinity | `"NegInf"` |
+| -0.0 | `"NegZero"` |
+
+This enables logging special float values like `float("nan")` or `float("inf")`
+which are not natively supported by JSON.
+
 ## Usage
 
 This module is used internally by the Neptune client to communicate with backend services. Users interact with backends indirectly through the high-level Neptune API.
@@ -37,4 +54,4 @@ This module is used internally by the Neptune client to communicate with backend
 See `../README.md` for information about internal Neptune components.
 
 ---
-df913a83 2026-01-22T01:04:04
+e4caafc0 2026-02-13T10:59:04

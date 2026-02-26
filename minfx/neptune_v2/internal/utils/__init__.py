@@ -51,6 +51,7 @@ from typing import (
     TypeVar,
 )
 
+from minfx.neptune_v2.internal.types.neptune_sdk_compat import check_not_neptune_sdk_stringify_value
 from minfx.neptune_v2.internal.types.stringify_value import StringifyValue
 from minfx.neptune_v2.internal.utils.logger import get_logger
 
@@ -126,6 +127,8 @@ def is_string_like(var: object) -> bool:
 
 
 def is_stringify_value(var: object) -> bool:
+    # Check for Neptune SDK's StringifyValue and raise TypeError if detected
+    check_not_neptune_sdk_stringify_value(var)
     return isinstance(var, StringifyValue)
 
 

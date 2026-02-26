@@ -55,3 +55,15 @@ class OperationProcessor(abc.ABC):
 
     def close(self) -> None:
         pass
+
+    def get_errors(self) -> list:
+        """Return list of errors encountered during processing.
+
+        Returns an empty list by default. Processors that support error collection
+        override this to return accumulated errors.
+        """
+        return []
+
+    def clear_errors(self) -> None:
+        """Clear any accumulated errors. Default implementation does nothing."""
+        pass

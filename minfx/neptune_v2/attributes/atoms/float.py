@@ -20,12 +20,7 @@ __all__ = ["Float"]
 import typing
 
 from minfx.neptune_v2.attributes.atoms.copiable_atom import CopiableAtom
-from minfx.neptune_v2.common.warnings import (
-    NeptuneUnsupportedValue,
-    warn_once,
-)
 from minfx.neptune_v2.internal.operation import AssignFloat
-from minfx.neptune_v2.internal.types.utils import is_unsupported_float
 from minfx.neptune_v2.types.atoms.float import Float as FloatVal
 
 if typing.TYPE_CHECKING:
@@ -34,6 +29,8 @@ if typing.TYPE_CHECKING:
 
 
 class Float(CopiableAtom):
+    """Float attribute that supports IEEE 754 special values (NaN, Infinity, -Infinity)."""
+
     @staticmethod
     def create_assignment_operation(path: list[str], value: float) -> AssignFloat:
         return AssignFloat(path, value)
@@ -52,16 +49,7 @@ class Float(CopiableAtom):
         if not isinstance(value, FloatVal):
             value = FloatVal(value)
 
-        if is_unsupported_float(value.value):
-            warn_once(
-                message=f"WARNING: The value you're trying to log is a nonstandard float value ({value.value!s}) "
-                f"that is not currently supported. "
-                f"We'll add support for this type of value in the future. "
-                f"For now, you can use utils.stringify_unsupported() to log one or more values as strings: "
-                f"run['field'] = stringify_unsupported(float({value.value!s}))",
-                exception=NeptuneUnsupportedValue,
-            )
-            return
-
+        # NaN, Infinity, -Infinity are now supported - they are encoded as strings
+        # in JSON and decoded by the backend
         with self._container.lock():
             self._enqueue_operation(self.create_assignment_operation(self._path, value.value), wait=wait)

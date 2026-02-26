@@ -38,7 +38,7 @@ if TYPE_CHECKING:
 
 Ret = TypeVar("Ret")
 
-MAX_STRING_SERIES_VALUE_LENGTH = 1000
+MAX_STRING_SERIES_VALUE_LENGTH = 16384
 
 
 class StringSeries(Series):

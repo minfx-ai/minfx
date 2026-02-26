@@ -22,6 +22,7 @@ import threading
 
 from minfx.neptune_v2 import Run
 from minfx.neptune_v2.internal.state import ContainerState
+from minfx.neptune_v2.internal.types.neptune_sdk_compat import check_not_neptune_sdk_run
 from minfx.neptune_v2.internal.utils import verify_type
 from minfx.neptune_v2.logging import Logger
 from minfx.neptune_v2.version import version as neptune_client_version
@@ -57,6 +58,7 @@ class NeptuneHandler(logging.Handler):
     """
 
     def __init__(self, *, run: Run, level: int = logging.NOTSET, path: str | None = None):
+        check_not_neptune_sdk_run(run)
         verify_type("run", run, Run)
         verify_type("level", level, int)
         if path is None:

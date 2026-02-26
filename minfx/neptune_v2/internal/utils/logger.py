@@ -15,7 +15,7 @@
 #
 from __future__ import annotations
 
-__all__ = ["NEPTUNE_LOGGER_NAME", "get_disabled_logger", "get_logger"]
+__all__ = ["NEPTUNE_LOGGER_NAME", "get_disabled_logger", "get_logger", "set_log_level"]
 
 import logging
 import os
@@ -204,6 +204,28 @@ def get_logger(with_prefix: bool = True) -> logging.Logger:
 
 def get_disabled_logger() -> logging.Logger:
     return logging.getLogger(NEPTUNE_NOOP_LOGGER_NAME)
+
+
+def set_log_level(level: int) -> None:
+    """Set the log level for the minfx client logger.
+
+    This affects all logging output from the Neptune/minfx client across all modules.
+    The logger is shared across the entire client, so setting this once affects all output.
+
+    Args:
+        level: A standard Python logging level (e.g., logging.DEBUG, logging.INFO,
+               logging.WARNING, logging.ERROR, logging.CRITICAL).
+
+    Example:
+        >>> import logging
+        >>> from minfx.neptune_v2 import init_run
+        >>> # Silence most output (only show errors and critical messages)
+        >>> run = init_run(log_level=logging.ERROR)
+        >>> # Or silence completely
+        >>> run = init_run(log_level=logging.CRITICAL + 1)
+    """
+    neptune_logger = logging.getLogger(NEPTUNE_LOGGER_NAME)
+    neptune_logger.setLevel(level)
 
 
 def _set_up_logging():

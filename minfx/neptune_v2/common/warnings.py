@@ -18,7 +18,6 @@ from __future__ import annotations
 __all__ = [
     "NeptuneDeprecationWarning",
     "NeptuneUnsupportedType",
-    "NeptuneUnsupportedValue",
     "NeptuneWarning",
     "warn_about_unsupported_type",
     "warn_once",
@@ -37,10 +36,6 @@ INTERACTIVE_FORMAT = "[%(name)s] [warning] %(category)s: %(message)s\n"
 
 
 class NeptuneDeprecationWarning(DeprecationWarning):
-    pass
-
-
-class NeptuneUnsupportedValue(Warning):
     pass
 
 

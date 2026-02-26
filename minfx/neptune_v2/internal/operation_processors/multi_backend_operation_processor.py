@@ -253,3 +253,15 @@ class MultiBackendOperationProcessor(OperationProcessor):
         """Close all processors."""
         for processor in self._processors:
             processor.close()
+
+    def get_errors(self) -> list:
+        """Return aggregated errors from all backend processors."""
+        errors = []
+        for processor in self._processors:
+            errors.extend(processor.get_errors())
+        return errors
+
+    def clear_errors(self) -> None:
+        """Clear errors from all backend processors."""
+        for processor in self._processors:
+            processor.clear_errors()

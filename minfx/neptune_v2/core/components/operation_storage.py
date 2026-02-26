@@ -26,7 +26,9 @@ UPLOAD_PATH: str = "upload_path"
 
 class OperationStorage(Resource):
     def __init__(self, data_path: Path):
-        self._data_path = data_path
+        # Resolve to absolute path to ensure file operations work correctly
+        # even if the working directory changes later.
+        self._data_path = data_path.resolve()
 
         # initialize upload directory
         Path(self.upload_path).mkdir(parents=True, exist_ok=True)

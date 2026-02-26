@@ -29,6 +29,15 @@ Atom attributes support:
 - Type-specific validation
 - Serialization for backend storage
 
+## Special Float Values
+
+The `Float` attribute supports IEEE 754 special values:
+- `float("nan")` - NaN values
+- `float("inf")` - Positive infinity
+- `float("-inf")` - Negative infinity
+
+These are encoded as strings during JSON serialization.
+
 ## Usage
 
 Atoms are used to store metadata and single-value parameters:
@@ -43,4 +52,4 @@ run["config/use_augmentation"] = True  # Boolean atom
 See `../README.md` for information about the attributes system.
 
 ---
-7dcfce5a 2026-01-18T14:43:38
+dc7ebd1a 2026-01-22T17:59:36

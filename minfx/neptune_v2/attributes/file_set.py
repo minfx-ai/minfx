@@ -28,6 +28,7 @@ from minfx.neptune_v2.internal.operation import (
     DeleteFiles,
     UploadFileSet,
 )
+from minfx.neptune_v2.internal.types.neptune_sdk_compat import check_not_neptune_sdk_file_set
 from minfx.neptune_v2.internal.utils import (
     verify_collection_type,
     verify_type,
@@ -41,6 +42,9 @@ if TYPE_CHECKING:
 
 class FileSet(Attribute):
     def assign(self, value: FileSetVal | str | Iterable[str], *, wait: bool = False) -> None:
+        # Check for Neptune SDK FileSet first
+        check_not_neptune_sdk_file_set(value)
+
         verify_type("value", value, (FileSetVal, str, Iterable))
         if isinstance(value, FileSetVal):
             value = value.file_globs

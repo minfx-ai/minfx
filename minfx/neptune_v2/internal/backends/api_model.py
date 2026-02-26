@@ -116,15 +116,25 @@ class VersionInfo:
     max_compatible: version.Version | None
 
     @staticmethod
+    def _parse_version(ver_str: str | None) -> version.Version | None:
+        """Parse version string, returning None for invalid/placeholder versions."""
+        if not ver_str:
+            return None
+        try:
+            return version.parse(ver_str)
+        except version.InvalidVersion:
+            return None
+
+    @staticmethod
     def build(
         min_recommended: str | None,
         min_compatible: str | None,
         max_compatible: str | None,
     ) -> VersionInfo:
         return VersionInfo(
-            min_recommended=version.parse(min_recommended) if min_recommended else None,
-            min_compatible=version.parse(min_compatible) if min_compatible else None,
-            max_compatible=version.parse(max_compatible) if max_compatible else None,
+            min_recommended=VersionInfo._parse_version(min_recommended),
+            min_compatible=VersionInfo._parse_version(min_compatible),
+            max_compatible=VersionInfo._parse_version(max_compatible),
         )
 
 

@@ -72,13 +72,15 @@ from minfx.neptune_v2.internal.utils.logger import get_logger
 if TYPE_CHECKING:
     from queue import Queue
 
-    from minfx.neptune_v2.common.exceptions import NeptuneException
     from minfx.neptune_v2.core.components.abstract import Resource
     from minfx.neptune_v2.internal.backends.neptune_backend import NeptuneBackend
     from minfx.neptune_v2.internal.container_type import ContainerType
     from minfx.neptune_v2.internal.id_formats import UniqueId
     from minfx.neptune_v2.internal.operation_processors.operation_logger import ProcessorStopSignal
     from minfx.neptune_v2.internal.signals_processing.signals import Signal
+
+# Import for runtime use (storing errors)
+from minfx.neptune_v2.common.exceptions import NeptuneException
 
 logger = get_logger()
 
@@ -90,6 +92,9 @@ def serializer(op: Operation) -> dict[str, Any]:
 class AsyncOperationProcessor(WithResources, OperationProcessor):
     STOP_QUEUE_STATUS_UPDATE_FREQ_SECONDS = 10.0
     STOP_QUEUE_MAX_TIME_NO_CONNECTION_SECONDS = float(os.getenv(NEPTUNE_SYNC_AFTER_STOP_TIMEOUT, DEFAULT_STOP_TIMEOUT))
+
+    # Maximum errors to store to prevent memory issues
+    MAX_STORED_ERRORS = 100
 
     def __init__(
         self,
@@ -148,6 +153,9 @@ class AsyncOperationProcessor(WithResources, OperationProcessor):
         self._lock: threading.RLock = lock
         self._signals_queue: Queue[Signal] = queue
         self._operation_acceptance: OperationAcceptance = OperationAcceptance.ACCEPTING
+        # Store errors for fail_on_error mode
+        self._errors: list[NeptuneException] = []
+        self._errors_lock: threading.Lock = threading.Lock()
 
         # Caller is responsible for taking this lock
         self._waiting_cond = threading.Condition(lock=lock)
@@ -350,6 +358,20 @@ class AsyncOperationProcessor(WithResources, OperationProcessor):
         unregister_queue_size_provider(self._backend_index)
         super().close()
 
+    def get_errors(self) -> list[NeptuneException]:
+        """Return list of errors encountered during async processing.
+
+        Returns a copy of the errors list for thread safety.
+        Errors are capped at MAX_STORED_ERRORS to prevent memory issues.
+        """
+        with self._errors_lock:
+            return list(self._errors)
+
+    def clear_errors(self) -> None:
+        """Clear accumulated errors."""
+        with self._errors_lock:
+            self._errors.clear()
+
     class ConsumerThread(Daemon):
         def __init__(
             self,
@@ -399,6 +421,11 @@ class AsyncOperationProcessor(WithResources, OperationProcessor):
                     "Error occurred during asynchronous operation processing: %s",
                     error,
                 )
+
+                # Store error for fail_on_error mode (thread-safe, capped)
+                with self._processor._errors_lock:
+                    if len(self._processor._errors) < AsyncOperationProcessor.MAX_STORED_ERRORS:
+                        self._processor._errors.append(error)
 
         @Daemon.ConnectionRetryWrapper(
             kill_message=("Killing Minfx asynchronous thread. Unsynchronized data is saved on disk.")

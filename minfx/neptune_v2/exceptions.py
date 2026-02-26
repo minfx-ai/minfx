@@ -192,6 +192,24 @@ class MalformedOperation(NeptuneException):
     pass
 
 
+class NeptuneOperationsError(NeptuneException):
+    """Exception raised when fail_on_error=True and operations fail.
+
+    Aggregates multiple errors that occurred during asynchronous operation processing.
+    """
+
+    def __init__(self, errors: list):
+        self.errors = errors
+        error_count = len(errors)
+        if error_count == 1:
+            message = f"Operation failed: {errors[0]}"
+        else:
+            error_summaries = "\n  - ".join(str(e) for e in errors[:5])
+            truncated = f" (showing first 5 of {error_count})" if error_count > 5 else ""
+            message = f"{error_count} operations failed{truncated}:\n  - {error_summaries}"
+        super().__init__(message)
+
+
 class FileNotFound(NeptuneException):
     def __init__(self, file: str):
         super().__init__(f"File not found: {file}")

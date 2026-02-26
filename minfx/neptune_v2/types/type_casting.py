@@ -26,8 +26,21 @@ from typing import (
     Mapping,
 )
 
+from minfx.neptune_v2.internal.types.neptune_sdk_compat import (
+    check_not_neptune_sdk_artifact,
+    check_not_neptune_sdk_atom,
+    check_not_neptune_sdk_file,
+    check_not_neptune_sdk_file_series,
+    check_not_neptune_sdk_namespace,
+    check_not_neptune_sdk_stringify_value,
+    is_neptune_sdk_file_series,
+    is_neptune_sdk_series,
+    warn_neptune_sdk_file_series,
+    warn_neptune_sdk_series,
+)
 from minfx.neptune_v2.internal.utils import (
     is_bool,
+    is_collection,
     is_dict_like,
     is_float,
     is_float_like,
@@ -138,8 +151,56 @@ def _convert_neptune_sdk_series(value: object) -> Value | None:
     )
 
 
+def _convert_neptune_sdk_file_series(value: object) -> Value:
+    """Convert Neptune SDK FileSeries to minfx FileSeries."""
+    values = getattr(value, "values", [])
+    return FileSeries(values=list(values) if values else [])
+
+
+def _cast_list_to_series(values: list) -> Value | None:
+    """Convert a list to the appropriate series type based on element types.
+
+    Args:
+        values: A list of values to convert.
+
+    Returns:
+        FloatSeries, StringSeries, or FileSeries based on element types.
+        Returns None for empty lists or unsupported element types.
+    """
+    if not values:
+        # Empty list - cannot determine type
+        return None
+
+    sample_val = values[0]
+
+    # Check if elements are File-convertible
+    if (
+        isinstance(sample_val, File)
+        or File.is_convertable_to_image(sample_val)
+        or File.is_convertable_to_html(sample_val)
+    ):
+        return FileSeries(values=values)
+
+    # Check if elements are strings
+    if is_string(sample_val):
+        return StringSeries(values=values)
+
+    # Check if elements are float-like (numbers)
+    if is_float_like(sample_val):
+        return FloatSeries(values=values)
+
+    return None
+
+
 def cast_value(value: CastableValue) -> Value | None:
     from minfx.neptune_v2.handler import Handler
+
+    # Check for Neptune SDK types that should use minfx equivalents (raises TypeError)
+    check_not_neptune_sdk_file(value)
+    check_not_neptune_sdk_stringify_value(value)
+    check_not_neptune_sdk_artifact(value)
+    check_not_neptune_sdk_namespace(value)
+    check_not_neptune_sdk_atom(value)
 
     from_stringify_value = False
     if is_stringify_value(value):
@@ -147,9 +208,15 @@ def cast_value(value: CastableValue) -> Value | None:
 
     if isinstance(value, Value):
         return value
-    # Handle Neptune SDK series types (neptune.types.FloatSeries/StringSeries)
-    if _is_neptune_sdk_series(value):
+    # Handle Neptune SDK series types (neptune.types.FloatSeries/StringSeries/FileSeries)
+    # Warn but allow conversion for backward compatibility
+    if is_neptune_sdk_series(value) or _is_neptune_sdk_series(value):
+        warn_neptune_sdk_series(value)
         return _convert_neptune_sdk_series(value)
+    # Handle Neptune SDK FileSeries - warn and convert
+    if is_neptune_sdk_file_series(value):
+        warn_neptune_sdk_file_series(value)
+        return _convert_neptune_sdk_file_series(value)
     if isinstance(value, Handler):
         return ValueCopy(value)
     if isinstance(value, argparse.Namespace):
@@ -172,12 +239,20 @@ def cast_value(value: CastableValue) -> Value | None:
         return Float(value)
     if is_dict_like(value):
         return Namespace(value)
+    # Handle lists - convert to appropriate series type
+    if is_collection(value) and isinstance(value, list):
+        series = _cast_list_to_series(value)
+        if series is not None:
+            return series
     if from_stringify_value:
         return String(str(value))
     return None
 
 
 def cast_value_for_extend(values: StringifyValue | Namespace | Series | Collection[Any]) -> Series | Namespace | None:
+    # Check for Neptune SDK types that should use minfx equivalents
+    check_not_neptune_sdk_stringify_value(values)
+
     from_stringify_value, original_values = False, None
     if is_stringify_value(values):
         from_stringify_value, original_values, values = True, values, values.value
@@ -190,6 +265,9 @@ def cast_value_for_extend(values: StringifyValue | Namespace | Series | Collecti
         return values
 
     sample_val = next(iter(values))
+
+    # Check for Neptune SDK File types in the collection
+    check_not_neptune_sdk_file(sample_val)
 
     if (
         isinstance(sample_val, File)

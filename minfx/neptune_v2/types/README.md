@@ -41,4 +41,4 @@ These types are used internally to represent values throughout Neptune. Users ty
 See `../README.md` for information about the Neptune v2 client.
 
 ---
-7dcfce5a 2026-01-18T14:43:38
+4ff6e696 2026-01-22T18:58:51

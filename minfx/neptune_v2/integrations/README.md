@@ -66,4 +66,4 @@ Import and use integration-specific functionality through the respective submodu
 See `../README.md` for information about the Neptune v2 client.
 
 ---
-7dcfce5a 2026-01-18T14:43:38
+f7ae0475 2026-01-22T18:39:07

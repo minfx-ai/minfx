@@ -781,6 +781,10 @@ class HostedNeptuneBackend(NeptuneBackend):
 
     @with_api_exceptions_handler
     def get_attributes(self, container_id: str, container_type: ContainerType) -> list[Attribute]:
+        # Projects don't have attributes like experiments do - return empty list
+        if container_type == ContainerType.PROJECT:
+            return []
+
         def to_attribute(attr: object) -> Attribute:
             return Attribute(attr.name, AttributeType(attr.type))
 
@@ -1206,6 +1210,19 @@ class HostedNeptuneBackend(NeptuneBackend):
         """Check if this backend is the official neptune.ai service."""
         base_url = self.get_display_address()
         return "neptune.ai" in base_url
+
+    def supports_content_dedup(self) -> bool:
+        """Check if this backend supports content-hash deduplication.
+
+        Returns True for minfx backends (which implement content-addressable storage).
+        Returns False for neptune.ai backends (no dedup support).
+
+        Content-hash deduplication:
+        - Files are stored by xxHash64 content hash
+        - Identical files are stored only once (automatic deduplication)
+        - Client can send hash with upload for integrity verification
+        """
+        return not self._is_neptune_ai_backend()
 
     def _get_minfx_frontend_url(self) -> str:
         """Determine the minfx frontend URL based on backend URL.

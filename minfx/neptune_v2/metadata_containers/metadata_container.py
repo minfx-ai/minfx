@@ -51,6 +51,7 @@ from minfx.neptune_v2.envs import (
 )
 from minfx.neptune_v2.exceptions import (
     MetadataInconsistency,
+    NeptuneOperationsError,
     NeptunePossibleLegacyUsageException,
 )
 from minfx.neptune_v2.handler import Handler
@@ -89,6 +90,7 @@ from minfx.neptune_v2.internal.utils import (
 from minfx.neptune_v2.internal.utils.logger import (
     get_disabled_logger,
     get_logger,
+    set_log_level,
 )
 from minfx.neptune_v2.internal.utils.paths import parse_path
 from minfx.neptune_v2.internal.utils.uncaught_exception_handler import instance as uncaught_exception_handler
@@ -152,6 +154,8 @@ class MetadataContainer(AbstractContextManager, NeptuneObject):
         async_lag_threshold: float = ASYNC_LAG_THRESHOLD,
         async_no_progress_callback: NeptuneObjectCallback | None = None,
         async_no_progress_threshold: float = ASYNC_NO_PROGRESS_THRESHOLD,
+        log_level: int | None = None,
+        fail_on_error: bool = False,
     ):
         verify_type("project", project, (str, type(None)))
         verify_type("backends", backends, (list, type(None)))
@@ -162,8 +166,15 @@ class MetadataContainer(AbstractContextManager, NeptuneObject):
         verify_optional_callable("async_lag_callback", async_lag_callback)
         verify_type("async_no_progress_threshold", async_no_progress_threshold, (int, float))
         verify_optional_callable("async_no_progress_callback", async_no_progress_callback)
+        verify_type("log_level", log_level, (int, type(None)))
+        verify_type("fail_on_error", fail_on_error, bool)
+
+        # Configure log level before any logging occurs
+        if log_level is not None:
+            set_log_level(log_level)
 
         self._mode: Mode = mode
+        self._fail_on_error: bool = fail_on_error
         self._flush_period = flush_period
         self._lock: threading.RLock = threading.RLock()
         self._forking_cond: threading.Condition = threading.Condition()
@@ -517,6 +528,13 @@ class MetadataContainer(AbstractContextManager, NeptuneObject):
 
         sec_left = None if seconds is None else seconds - (time.time() - ts)
         self._op_processor.stop(sec_left)
+
+        # Check for errors if fail_on_error is enabled
+        errors = self._op_processor.get_errors()
+        if errors and self._fail_on_error:
+            # Clear errors before raising (they've been reported)
+            self._op_processor.clear_errors()
+            raise NeptuneOperationsError(errors)
 
         # Cache URLs before closing (needed for shutdown log)
         shutdown_urls: list[str] | None = None

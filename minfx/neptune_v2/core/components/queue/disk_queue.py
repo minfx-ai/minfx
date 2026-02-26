@@ -82,10 +82,11 @@ class DiskQueue(WithResources, Generic[T]):
         )
         self._extension: str = extension
 
-        self._last_ack_file = SyncOffsetFile(data_path / "last_ack_version", default=0)
-        self._last_put_file = SyncOffsetFile(data_path / "last_put_version", default=0)
+        # Use self._data_path (resolved) for all file operations
+        self._last_ack_file = SyncOffsetFile(self._data_path / "last_ack_version", default=0)
+        self._last_put_file = SyncOffsetFile(self._data_path / "last_put_version", default=0)
 
-        self._log_files: deque[LogFile] = get_all_log_files(data_path, extension)
+        self._log_files: deque[LogFile] = get_all_log_files(self._data_path, extension)
         self._write_file_version: int = self._log_files[-1].min_version
         self._writer = self._log_files[-1]
         self._read_file_version: int = self._log_files[0].min_version

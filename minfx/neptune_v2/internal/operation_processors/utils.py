@@ -68,7 +68,12 @@ def get_container_dir(container_id: UniqueId, container_type: ContainerType) -> 
 
 def get_container_full_path(type_dir: str, container_id: UniqueId, container_type: ContainerType) -> Path:
     neptune_data_dir = Path(os.getenv("NEPTUNE_DATA_DIRECTORY", NEPTUNE_DATA_DIRECTORY))
-    return neptune_data_dir / type_dir / get_container_dir(container_id=container_id, container_type=container_type)
+    # Resolve to absolute path immediately to ensure file operations work
+    # correctly even if the working directory changes later (e.g., in tests
+    # that use tmp_context() or similar patterns).
+    return (
+        neptune_data_dir / type_dir / get_container_dir(container_id=container_id, container_type=container_type)
+    ).resolve()
 
 
 def random_key(length: int) -> str:

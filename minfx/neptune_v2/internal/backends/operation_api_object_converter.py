@@ -13,9 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-__all__ = ["OperationApiObjectConverter"]
+__all__ = ["OperationApiObjectConverter", "encode_float_for_json"]
+
+import math
+import struct
+from typing import Union
 
 from minfx.neptune_v2.common.exceptions import InternalClientError
+
+# Standard NaN bit pattern (quiet NaN with no payload)
+_STANDARD_NAN_BITS = 0x7FF8_0000_0000_0000
 from minfx.neptune_v2.internal.operation import (
     AddStrings,
     AssignArtifact,
@@ -49,12 +56,57 @@ from minfx.neptune_v2.internal.operation_visitor import (
 )
 
 
+def _float_to_bits(value: float) -> int:
+    """Convert float to its IEEE 754 bit representation."""
+    return struct.unpack(">Q", struct.pack(">d", value))[0]
+
+
+def encode_float_for_json(value: float) -> Union[float, str]:
+    """Encode special float values as strings for JSON serialization.
+
+    Standard JSON does not support NaN, Infinity, or -Infinity as number values.
+    This function encodes these special IEEE 754 values as strings that can be
+    decoded by the backend.
+
+    Formats:
+        - "NaN" - standard quiet NaN
+        - "NaN(bits)" - NaN with custom bit pattern, e.g. "NaN(9221120237041090561)"
+        - "PosInf" - positive infinity
+        - "NegInf" - negative infinity
+        - "NegZero" - negative zero (-0.0)
+
+    Args:
+        value: The float value to encode.
+
+    Returns:
+        The original float if it's a regular number, or a string representation
+        for special values.
+    """
+    if math.isnan(value):
+        bits = _float_to_bits(value)
+        if bits == _STANDARD_NAN_BITS:
+            return "NaN"
+        return f"NaN({bits})"
+    if math.isinf(value):
+        return "PosInf" if value > 0 else "NegInf"
+    if value == 0.0 and math.copysign(1.0, value) < 0:
+        return "NegZero"
+    return value
+
+
+def encode_optional_float_for_json(value: Union[float, None]) -> Union[float, str, None]:
+    """Encode optional float value for JSON serialization."""
+    if value is None:
+        return None
+    return encode_float_for_json(value)
+
+
 class OperationApiObjectConverter(OperationVisitor[dict]):
     def convert(self, op: Operation) -> dict:
         return op.accept(self)
 
     def visit_assign_float(self, op: AssignFloat) -> dict:
-        return {"value": op.value}
+        return {"value": encode_float_for_json(op.value)}
 
     def visit_assign_int(self, op: AssignInt) -> dict:
         return {"value": op.value}
@@ -84,8 +136,8 @@ class OperationApiObjectConverter(OperationVisitor[dict]):
         return {
             "entries": [
                 {
-                    "value": value.value,
-                    "step": value.step,
+                    "value": encode_float_for_json(value.value),
+                    "step": encode_optional_float_for_json(value.step),
                     "timestampMilliseconds": int(value.ts * 1000),
                 }
                 for value in op.values
@@ -97,7 +149,7 @@ class OperationApiObjectConverter(OperationVisitor[dict]):
             "entries": [
                 {
                     "value": value.value,
-                    "step": value.step,
+                    "step": encode_optional_float_for_json(value.step),
                     "timestampMilliseconds": int(value.ts * 1000),
                 }
                 for value in op.values
@@ -113,7 +165,7 @@ class OperationApiObjectConverter(OperationVisitor[dict]):
                         "name": value.value.name,
                         "description": value.value.description,
                     },
-                    "step": value.step,
+                    "step": encode_optional_float_for_json(value.step),
                     "timestampMilliseconds": int(value.ts * 1000),
                 }
                 for value in op.values
@@ -130,7 +182,11 @@ class OperationApiObjectConverter(OperationVisitor[dict]):
         return {}
 
     def visit_config_float_series(self, op: ConfigFloatSeries) -> dict:
-        return {"min": op.min, "max": op.max, "unit": op.unit}
+        return {
+            "min": encode_optional_float_for_json(op.min),
+            "max": encode_optional_float_for_json(op.max),
+            "unit": op.unit,
+        }
 
     def visit_add_strings(self, op: AddStrings) -> dict:
         return {"values": list(op.values)}

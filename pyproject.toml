@@ -44,6 +44,8 @@ dependencies = [
     "GitPython>=2.0.8",
     "psutil",
     "pandas",
+    # Content-addressable storage hashing (for file deduplication)
+    "xxhash>=3.0.0",
 ]
 
 [project.optional-dependencies]
@@ -358,5 +360,4 @@ filterwarnings = [
     "ignore:Encountered disk issue:minfx.neptune_v2.common.warnings.NeptuneWarning",
     "ignore:To use the default progress bar, please install tqdm:minfx.neptune_v2.common.warnings.NeptuneWarning",
     "ignore:Disk usage is at 100%:minfx.neptune_v2.common.warnings.NeptuneWarning",
-    "ignore::minfx.neptune_v2.common.warnings.NeptuneUnsupportedValue",
 ]

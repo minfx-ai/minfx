@@ -53,7 +53,8 @@ class GpuMemoryGauge(Gauge):
         return str(self.card_index)
 
     def value(self) -> float | None:
-        return self.__gpu_monitor.get_card_used_memory_in_bytes(self.card_index) / float(BYTES_IN_ONE_GB)
+        memory_bytes = self.__gpu_monitor.get_card_used_memory_in_bytes(self.card_index)
+        return None if memory_bytes is None else memory_bytes / float(BYTES_IN_ONE_GB)
 
     def __eq__(self, other: object) -> bool:
         return self.__class__ == other.__class__ and self.card_index == other.card_index

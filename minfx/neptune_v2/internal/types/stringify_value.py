@@ -31,8 +31,6 @@
 #
 __all__ = ["StringifyValue", "extract_if_stringify_value"]
 
-import math
-
 from minfx.neptune_v2.constants import (
     MAX_32_BIT_INT,
     MIN_32_BIT_INT,
@@ -40,12 +38,6 @@ from minfx.neptune_v2.constants import (
 from minfx.neptune_v2.internal.utils.logger import get_logger
 
 logger = get_logger()
-
-
-def is_unsupported_float(value: object) -> bool:
-    if isinstance(value, float):
-        return math.isinf(value) or math.isnan(value)
-    return False
 
 
 class StringifyValue:
@@ -59,9 +51,7 @@ class StringifyValue:
                 MAX_32_BIT_INT,
             )
             value = float(value)
-        if is_unsupported_float(value):
-            value = str(value)
-
+        # Note: NaN, Inf, -Inf floats are now natively supported - no need to stringify
         self.__value = value
 
     @property

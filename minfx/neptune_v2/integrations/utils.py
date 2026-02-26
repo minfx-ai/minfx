@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-__all__ = ["RunType", "expect_not_an_experiment", "join_paths", "verify_type"]
+__all__ = ["RunType", "check_not_neptune_sdk_run", "expect_not_an_experiment", "join_paths", "verify_type"]
 
 from typing import Union
 
@@ -21,11 +21,13 @@ from minfx.neptune_v2 import Run
 from minfx.neptune_v2.common.experiments import LegacyExperiment as Experiment
 from minfx.neptune_v2.exceptions import NeptuneLegacyIncompatibilityException
 from minfx.neptune_v2.handler import Handler
+from minfx.neptune_v2.internal.types.neptune_sdk_compat import check_not_neptune_sdk_run
 from minfx.neptune_v2.internal.utils import verify_type
 from minfx.neptune_v2.internal.utils.paths import join_paths
 
 
 def expect_not_an_experiment(run: Run):
+    check_not_neptune_sdk_run(run)
     if isinstance(run, Experiment):
         raise NeptuneLegacyIncompatibilityException
 

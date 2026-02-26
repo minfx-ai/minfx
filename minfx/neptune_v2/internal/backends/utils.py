@@ -158,18 +158,22 @@ def create_swagger_client(
 
 
 def verify_client_version(client_config: ClientConfig, version: Version):
+    # Skip all version checks if server returns no version info (placeholder/dev mode)
+    version_info = client_config.version_info
+    if version_info.min_compatible is None and version_info.max_compatible is None:
+        return
     version_with_patch_0 = Version(replace_patch_version(str(version)))
-    if client_config.version_info.min_compatible and client_config.version_info.min_compatible > version:
-        raise NeptuneClientUpgradeRequiredError(version, min_version=client_config.version_info.min_compatible)
-    if client_config.version_info.max_compatible and client_config.version_info.max_compatible < version_with_patch_0:
-        raise NeptuneClientUpgradeRequiredError(version, max_version=client_config.version_info.max_compatible)
-    if client_config.version_info.min_recommended and client_config.version_info.min_recommended > version:
+    if version_info.min_compatible is not None and version_info.min_compatible > version:
+        raise NeptuneClientUpgradeRequiredError(version, min_version=version_info.min_compatible)
+    if version_info.max_compatible is not None and version_info.max_compatible < version_with_patch_0:
+        raise NeptuneClientUpgradeRequiredError(version, max_version=version_info.max_compatible)
+    if version_info.min_recommended is not None and version_info.min_recommended > version:
         logger.warning(
             "WARNING: Your version of the Neptune client library (%s) is deprecated,"
             " and soon will no longer be supported by the Neptune server."
             " We recommend upgrading to at least version %s.",
             version,
-            client_config.version_info.min_recommended,
+            version_info.min_recommended,
         )
 
 

@@ -18,47 +18,19 @@ from __future__ import annotations
 __all__ = ["__version__", "version"]
 
 
-from importlib.metadata import PackageNotFoundError, version as version_parser
-
 from packaging.version import parse
 
-from minfx.neptune_v2.common.warnings import warn_once
+from minfx import __version__ as minfx_version
 
+# The neptune_v2 code is bundled inside minfx.
+# Use the minfx package version directly.
+# For dev versions (0.0.0.dev0) or unknown, use a reasonable default
+# that passes server version checks.
+_FALLBACK_VERSION = "1.0.0"
 
-def check_version(package_name: str) -> str | None:
-    try:
-        return version_parser(package_name)
-    except PackageNotFoundError:
-        # package is not installed
-        return None
+if minfx_version in ("unknown", "0.0.0.dev0"):
+    __version__ = _FALLBACK_VERSION
+else:
+    __version__ = minfx_version
 
-
-def detect_version() -> str:
-    # When bundled inside minfx, the package metadata won't be available.
-    # In that case, return the bundled version.
-    _BUNDLED_VERSION = "1.0.0"
-
-    neptune_version = check_version("neptune")
-    neptune_client_version = check_version("neptune-client")
-
-    if neptune_version is not None and neptune_client_version is not None:
-        raise RuntimeError(
-            "We've detected that the 'neptune' and 'neptune-client' packages are both installed. "
-            "Uninstall each of them and then install only the new 'neptune' package. For more information, "
-            "see https://docs-legacy.neptune.ai/setup/upgrading/"
-        )
-    if neptune_version is not None:
-        return neptune_version
-    if neptune_client_version is not None:
-        warn_once(
-            "The 'neptune-client' package has been deprecated and will be removed in the future. Install "
-            "the 'neptune' package instead. For more, see https://docs-legacy.neptune.ai/setup/upgrading/"
-        )
-        return neptune_client_version
-
-    # Bundled inside minfx - return bundled version
-    return _BUNDLED_VERSION
-
-
-__version__ = detect_version()
 version = parse(__version__)

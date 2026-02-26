@@ -17,7 +17,27 @@ This module provides:
 - Stdout/stderr capture during experiment execution
 - Automatic logging of console output to Neptune
 - Background stream monitoring
-- Stream buffering and batching
+- Line buffering for clean log entries
+
+## Line Buffering
+
+The capture uses line buffering to ensure each log entry contains a complete line.
+Without buffering, Python's `print()` function would create separate entries:
+
+```
+print("hello")  # Internally calls: write("hello"), write("\n")
+```
+
+This would result in fragmented entries: `"hello"`, `"\n"`.
+
+With line buffering, partial writes are accumulated until a newline is received,
+producing a single entry: `"hello\n"`.
+
+**Behavior:**
+- Complete lines (ending with `\n`) are logged as single entries
+- Multiple lines in one write produce multiple entries
+- Partial lines (no newline) are buffered until newline or `close()`
+- On `close()`, any remaining buffered content is flushed
 
 ## Usage
 
@@ -28,4 +48,4 @@ This module is used internally by the Neptune client to automatically capture an
 See `../README.md` for information about internal Neptune components.
 
 ---
-7dcfce5a 2026-01-18T14:43:38
+66b9539e 2026-01-25T15:43:12

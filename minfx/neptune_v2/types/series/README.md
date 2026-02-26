@@ -23,6 +23,16 @@ These value types:
 - Enable batch operations
 - Support serialization for backend transmission
 
+## Special Float Values
+
+`FloatSeries` supports IEEE 754 special values:
+- `float("nan")` - NaN values
+- `float("inf")` - Positive infinity
+- `float("-inf")` - Negative infinity
+- `-0.0` - Negative zero
+
+These are encoded as strings during JSON serialization and decoded transparently by the backend.
+
 ## Usage
 
 These types are used internally to represent values logged to series attributes. Users typically don't interact with these classes directly but use them implicitly through series logging methods.
@@ -32,4 +42,4 @@ These types are used internally to represent values logged to series attributes.
 See `../README.md` for information about Neptune types.
 
 ---
-7dcfce5a 2026-01-18T14:43:38
+f7ae0475 2026-01-22T18:39:07

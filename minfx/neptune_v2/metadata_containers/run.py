@@ -211,6 +211,12 @@ class Run(MetadataContainer):
             object was initialized. If a no-progress callback (default callback enabled via environment variable or
             custom callback passed to the `async_no_progress_callback` argument) is enabled, the callback is called
             when this duration is exceeded.
+        log_level: Log level for the Neptune client logger (e.g., `logging.WARNING` to reduce verbosity,
+            `logging.ERROR` for minimal output, or `logging.CRITICAL + 1` to silence completely).
+            If None, the default INFO level is used.
+        fail_on_error: If True, raises NeptuneOperationsError when stop() is called if any operations
+            failed during async processing. Useful for tests to catch server errors.
+            Defaults to False.
 
     Returns:
         Run object that is used to manage the tracked run and log metadata to it.
@@ -337,6 +343,8 @@ class Run(MetadataContainer):
         async_lag_threshold: float = ASYNC_LAG_THRESHOLD,
         async_no_progress_callback: NeptuneObjectCallback | None = None,
         async_no_progress_threshold: float = ASYNC_NO_PROGRESS_THRESHOLD,
+        log_level: int | None = None,
+        fail_on_error: bool = False,
         **kwargs: object,
     ) -> None:
         check_for_extra_kwargs("Run", kwargs)
@@ -450,6 +458,8 @@ class Run(MetadataContainer):
             async_lag_threshold=async_lag_threshold,
             async_no_progress_callback=async_no_progress_callback,
             async_no_progress_threshold=async_no_progress_threshold,
+            log_level=log_level,
+            fail_on_error=fail_on_error,
         )
 
     def _get_or_create_api_object(self) -> ApiExperiment:
@@ -591,6 +601,182 @@ class Run(MetadataContainer):
             project_name=self._project_name,
             sys_id=self._sys_id,
         )
+
+    # -------------------------------------------------------------------------
+    # Neptune Scale compatibility aliases
+    # -------------------------------------------------------------------------
+
+    def wait_for_processing(self) -> None:
+        """Alias for sync(). Provided for neptune_scale compatibility."""
+        self.sync()
+
+    def wait_for_submission(self, *, disk_only: bool = False) -> None:
+        """Alias for wait(). Provided for neptune_scale compatibility."""
+        self.wait(disk_only=disk_only)
+
+    def close(self, *, seconds: float | None = None) -> None:
+        """Alias for stop(). Provided for neptune_scale compatibility."""
+        self.stop(seconds=seconds)
+
+    def add_tags(
+        self,
+        tags: list[str],
+        *,
+        group_tags: bool = False,
+        wait: bool = False,
+    ) -> None:
+        """Adds tags to the run.
+
+        Provided for neptune_scale compatibility.
+
+        Args:
+            tags: List of tags to add.
+            group_tags: If True, adds to "sys/group_tags" instead of "sys/tags".
+            wait: If True, waits for the operation to complete.
+        """
+        path = "sys/group_tags" if group_tags else "sys/tags"
+        self[path].add(tags, wait=wait)
+
+    def log_configs(
+        self,
+        data: dict,
+        *,
+        flatten: bool = False,
+        cast_unsupported: bool = False,
+        wait: bool = False,
+    ) -> None:
+        """Logs configuration parameters to the run.
+
+        Provided for neptune_scale compatibility.
+
+        Args:
+            data: Dictionary of configuration parameters.
+                  Keys become field paths, values become field values.
+            flatten: If True, nested dictionaries are flattened into dot-separated paths.
+            cast_unsupported: If True, unsupported types are cast to strings.
+            wait: If True, waits for the operation to complete.
+
+        Example:
+            >>> run.log_configs(
+            ...     data={"config": {"lr": 0.001, "epochs": 10}},
+            ...     flatten=True,
+            ...     cast_unsupported=True,
+            ... )
+            # Equivalent to:
+            # run["config"] = stringify_unsupported({"lr": 0.001, "epochs": 10})
+        """
+        from minfx.neptune_v2.utils import stringify_unsupported
+
+        for key, value in data.items():
+            if cast_unsupported:
+                value = stringify_unsupported(value, expand=flatten)
+            self[key].assign(value, wait=wait)
+
+    def log_metrics(
+        self,
+        data: dict[str, float],
+        *,
+        step: float | None = None,
+        timestamp: float | None = None,
+        wait: bool = False,
+    ) -> None:
+        """Logs metrics to the run.
+
+        Provided for neptune_scale compatibility.
+
+        Args:
+            data: Dictionary mapping metric paths to values.
+                  Paths can include namespaces (e.g., "metrics/acc").
+            step: Optional step index for the metrics.
+            timestamp: Optional Unix timestamp for the metrics.
+            wait: If True, waits for the operation to complete.
+
+        Example:
+            >>> run.log_metrics(
+            ...     data={"metrics/acc": 0.95, "metrics/loss": 0.05},
+            ...     step=100,
+            ... )
+            # Equivalent to:
+            # run["metrics"].append({"acc": 0.95, "loss": 0.05}, step=100)
+        """
+        for path, value in data.items():
+            self[path].append(value, step=step, timestamp=timestamp, wait=wait)
+
+    def assign_files(
+        self,
+        value: str,
+        *,
+        path: str = "sample",
+        wait: bool = False,
+    ) -> None:
+        """Uploads a file to the run.
+
+        Provided for neptune_scale compatibility.
+
+        Args:
+            value: Path to the file to upload.
+            path: Field path to store the file under. Defaults to "sample".
+            wait: If True, waits for the operation to complete.
+
+        Example:
+            >>> run.assign_files("my_file.png")
+            # Equivalent to:
+            # run["sample"].upload("my_file.png")
+        """
+        self[path].upload(value, wait=wait)
+
+    def log_files(
+        self,
+        files: dict[str, str],
+        *,
+        step: float | None = None,
+        timestamp: float | None = None,
+        wait: bool = False,
+    ) -> None:
+        """Logs files as a series to the run.
+
+        Provided for neptune_scale compatibility.
+
+        Args:
+            files: Dictionary mapping field paths to file paths.
+            step: Optional step index for the files.
+            timestamp: Optional Unix timestamp for the files.
+            wait: If True, waits for the operation to complete.
+
+        Example:
+            >>> run.log_files(files={"predictions": "my_file.png"}, step=10)
+            # Equivalent to:
+            # run["predictions"].append("my_file.png", step=10)
+        """
+        for field_path, file_path in files.items():
+            self[field_path].append(file_path, step=step, timestamp=timestamp, wait=wait)
+
+    def log_string_series(
+        self,
+        value: str,
+        *,
+        path: str = "logs",
+        step: float | None = None,
+        timestamp: float | None = None,
+        wait: bool = False,
+    ) -> None:
+        """Logs a string value to a string series.
+
+        Provided for neptune_scale compatibility.
+
+        Args:
+            value: String value to log.
+            path: Field path to log to. Defaults to "logs".
+            step: Optional step index for the entry.
+            timestamp: Optional Unix timestamp for the entry.
+            wait: If True, waits for the operation to complete.
+
+        Example:
+            >>> run.log_string_series("some_string")
+            # Equivalent to:
+            # run["logs"].append("some_string")
+        """
+        self[path].append(value, step=step, timestamp=timestamp, wait=wait)
 
 
 def capture_only_if_non_interactive(mode: Mode) -> bool:
