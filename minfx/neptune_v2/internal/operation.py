@@ -420,6 +420,126 @@ class ClearImageLog(Operation):
 
 
 @dataclass
+class HtmlValue:
+    """Value for HTML series entries."""
+
+    data: str | None
+    name: str | None
+    description: str | None
+
+    @staticmethod
+    def serializer(obj: HtmlValue) -> dict[str, str | None]:
+        return {"data": obj.data, "name": obj.name, "description": obj.description}
+
+    @staticmethod
+    def deserializer(obj: dict | str | None) -> HtmlValue:
+        if obj is None:
+            return HtmlValue(None, None, None)
+        if isinstance(obj, str):
+            return HtmlValue(data=obj, name=None, description=None)
+        if isinstance(obj, dict):
+            return HtmlValue(data=obj["data"], name=obj["name"], description=obj["description"])
+        raise InternalClientError("Run data on disk is malformed or was saved by newer version of Neptune Library")
+
+
+@dataclass
+class LogHtml(LogOperation):
+    """Log HTML content to an HTML series."""
+
+    ValueType = LogSeriesValue[HtmlValue]
+
+    values: list[ValueType]
+
+    def accept(self, visitor: OperationVisitor[Ret]) -> Ret:
+        return visitor.visit_log_html(self)
+
+    def to_dict(self) -> dict:
+        ret = super().to_dict()
+        ret["values"] = [value.to_dict(HtmlValue.serializer) for value in self.values]
+        return ret
+
+    @staticmethod
+    def from_dict(data: dict) -> LogHtml:
+        return LogHtml(
+            data["path"],
+            [LogHtml.ValueType.from_dict(value, HtmlValue.deserializer) for value in data["values"]],
+        )
+
+
+@dataclass
+class ClearHtmlLog(Operation):
+    def accept(self, visitor: OperationVisitor[Ret]) -> Ret:
+        return visitor.visit_clear_html_log(self)
+
+    @staticmethod
+    def from_dict(data: dict) -> ClearHtmlLog:
+        return ClearHtmlLog(data["path"])
+
+
+@dataclass
+class FileSeriesValue:
+    """Value for generic file series entries."""
+
+    data: str | None
+    name: str | None
+    description: str | None
+    extension: str | None
+
+    @staticmethod
+    def serializer(obj: FileSeriesValue) -> dict[str, str | None]:
+        return {"data": obj.data, "name": obj.name, "description": obj.description, "extension": obj.extension}
+
+    @staticmethod
+    def deserializer(obj: dict | str | None) -> FileSeriesValue:
+        if obj is None:
+            return FileSeriesValue(None, None, None, None)
+        if isinstance(obj, str):
+            return FileSeriesValue(data=obj, name=None, description=None, extension=None)
+        if isinstance(obj, dict):
+            return FileSeriesValue(
+                data=obj["data"],
+                name=obj.get("name"),
+                description=obj.get("description"),
+                extension=obj.get("extension"),
+            )
+        raise InternalClientError("Run data on disk is malformed or was saved by newer version of Neptune Library")
+
+
+@dataclass
+class LogFiles(LogOperation):
+    """Log generic files to a file series."""
+
+    ValueType = LogSeriesValue[FileSeriesValue]
+
+    values: list[ValueType]
+
+    def accept(self, visitor: OperationVisitor[Ret]) -> Ret:
+        return visitor.visit_log_files(self)
+
+    def to_dict(self) -> dict:
+        ret = super().to_dict()
+        ret["values"] = [value.to_dict(FileSeriesValue.serializer) for value in self.values]
+        return ret
+
+    @staticmethod
+    def from_dict(data: dict) -> LogFiles:
+        return LogFiles(
+            data["path"],
+            [LogFiles.ValueType.from_dict(value, FileSeriesValue.deserializer) for value in data["values"]],
+        )
+
+
+@dataclass
+class ClearFileLog(Operation):
+    def accept(self, visitor: OperationVisitor[Ret]) -> Ret:
+        return visitor.visit_clear_file_log(self)
+
+    @staticmethod
+    def from_dict(data: dict) -> ClearFileLog:
+        return ClearFileLog(data["path"])
+
+
+@dataclass
 class ConfigFloatSeries(Operation):
     min: float | None
     max: float | None

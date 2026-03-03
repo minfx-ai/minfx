@@ -29,6 +29,7 @@ from typing import (
 
 R = TypeVar("R")
 
+from minfx.neptune_v2.common.backends.utils import format_rate_limit_warning
 from minfx.neptune_v2.common.exceptions import NeptuneConnectionLostException
 from minfx.neptune_v2.common.warnings import (
     NeptuneWarning,
@@ -171,11 +172,9 @@ class Daemon(threading.Thread):
 
                         if self_.last_backoff_time == 0:
                             if error_name == "HTTPTooManyRequests":
+                                response = getattr(e.cause, "response", None)
                                 warn_once(
-                                    "You're hitting the default logging-rate limit for your workspace."
-                                    " See how to optimize the logging calls to reduce requests:"
-                                    " https://docs.neptune.ai/help/reducing_requests/. \n"
-                                    " To increase the limits for your workspace, contact sales@neptune.ai.",
+                                    format_rate_limit_warning(response),
                                     exception=NeptuneWarning,
                                 )
                             else:

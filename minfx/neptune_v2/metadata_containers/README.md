@@ -47,4 +47,4 @@ model = neptune.init_model()
 See `../README.md` for information about the Neptune v2 client.
 
 ---
-c119ad1e 2026-02-26T16:14:31
+e5eef531 2026-03-02T09:34:16

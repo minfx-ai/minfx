@@ -32,8 +32,7 @@ from minfx.neptune_v2.internal.constants import ANONYMOUS_API_TOKEN_CONTENT
 @dataclass(frozen=True)
 class Credentials:
     api_token: str
-    token_origin_address: str
-    api_url_opt: str
+    api_address: str
 
     @classmethod
     def from_token(cls, api_token: str | None = None) -> Credentials:
@@ -48,16 +47,13 @@ class Credentials:
 
         api_token = api_token.strip()
         token_dict = Credentials._api_token_to_dict(api_token)
-        # TODO: Consider renaming 'api_address' (breaking backward compatibility)
         if "api_address" not in token_dict:
             raise NeptuneInvalidApiTokenException
-        token_origin_address = token_dict["api_address"]
-        api_url = token_dict.get("api_url", None)
+        api_address = token_dict["api_address"]
 
         return Credentials(
             api_token=api_token,
-            token_origin_address=token_origin_address,
-            api_url_opt=api_url,
+            api_address=api_address,
         )
 
     @staticmethod

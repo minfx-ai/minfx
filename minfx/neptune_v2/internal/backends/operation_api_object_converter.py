@@ -32,7 +32,9 @@ from minfx.neptune_v2.internal.operation import (
     AssignInt,
     AssignString,
     ClearArtifact,
+    ClearFileLog,
     ClearFloatLog,
+    ClearHtmlLog,
     ClearImageLog,
     ClearStringLog,
     ClearStringSet,
@@ -40,7 +42,9 @@ from minfx.neptune_v2.internal.operation import (
     CopyAttribute,
     DeleteAttribute,
     DeleteFiles,
+    LogFiles,
     LogFloats,
+    LogHtml,
     LogImages,
     LogStrings,
     Operation,
@@ -179,6 +183,45 @@ class OperationApiObjectConverter(OperationVisitor[dict]):
         return {}
 
     def visit_clear_image_log(self, _: ClearImageLog) -> dict:
+        return {}
+
+    def visit_log_html(self, op: LogHtml) -> dict:
+        return {
+            "entries": [
+                {
+                    "value": {
+                        "data": value.value.data,
+                        "name": value.value.name,
+                        "description": value.value.description,
+                    },
+                    "step": encode_optional_float_for_json(value.step),
+                    "timestampMilliseconds": int(value.ts * 1000),
+                }
+                for value in op.values
+            ]
+        }
+
+    def visit_clear_html_log(self, _: ClearHtmlLog) -> dict:
+        return {}
+
+    def visit_log_files(self, op: LogFiles) -> dict:
+        return {
+            "entries": [
+                {
+                    "value": {
+                        "data": value.value.data,
+                        "name": value.value.name,
+                        "description": value.value.description,
+                        "extension": value.value.extension,
+                    },
+                    "step": encode_optional_float_for_json(value.step),
+                    "timestampMilliseconds": int(value.ts * 1000),
+                }
+                for value in op.values
+            ]
+        }
+
+    def visit_clear_file_log(self, _: ClearFileLog) -> dict:
         return {}
 
     def visit_config_float_series(self, op: ConfigFloatSeries) -> dict:

@@ -202,7 +202,7 @@ class HostedNeptuneBackend(NeptuneBackend):
         )
         self._http_client: RequestsClient = http_client
         self._client_config: ClientConfig = client_config
-        self._api_url: str = api_url  # Token's api_url - single source of truth
+        self._api_url: str = api_url  # Token's api_address - single source of truth
 
         self.backend_client = create_backend_client(self._api_url, self._http_client)
         self.leaderboard_client = create_leaderboard_client(self._api_url, self._http_client)
@@ -231,7 +231,7 @@ class HostedNeptuneBackend(NeptuneBackend):
             raise NeptuneFeatureNotAvailableException(feature_name)
 
     def get_display_address(self) -> str:
-        # Use token's api_url, not server's applicationUrl response
+        # Use token's api_address, not server's applicationUrl response
         # This ensures links match the backend the client actually connected to
         return self._api_url
 

@@ -108,7 +108,7 @@ def _get_token_client(
     proxies: dict[str, str],
     backend_index: int | None = None,
 ) -> SwaggerClientWrapper:
-    api_url = credentials.api_url_opt or credentials.token_origin_address
+    api_url = credentials.api_address
     if proxies is None:
         verify_host_resolution(api_url)
 
@@ -235,8 +235,8 @@ def create_http_client_with_auth(
         backend_index=backend_index,
     )
 
-    # Use token's api_url as the single source of truth for API URL
-    api_url = credentials.api_url_opt or credentials.token_origin_address
+    # Use token's api_address as the single source of truth for API URL
+    api_url = credentials.api_address
 
     verify_client_version(client_config, neptune_client_version)
 

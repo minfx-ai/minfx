@@ -35,6 +35,7 @@ from typing import (
 )
 
 from minfx.neptune_v2.cli.utils import get_qualified_name
+from minfx.neptune_v2.common.backends.utils import format_rate_limit_warning
 from minfx.neptune_v2.common.exceptions import NeptuneConnectionLostException
 from minfx.neptune_v2.common.warnings import (
     NeptuneWarning,
@@ -148,14 +149,9 @@ class ExecutionDirectory:
                         if time.monotonic() - start_time > retries_timeout:
                             raise
                         if ex.cause.__class__.__name__ == "HTTPTooManyRequests":
+                            response = getattr(ex.cause, "response", None)
                             warn_once(
-                                "You're hitting the logging-rate limit for your workspace."
-                                " Logging will be throttled to stay within limits."
-                                " You might observe a delay in updates in the Neptune web app."
-                                " NOTE: Your script is still running!"
-                                " See how to optimize the logging calls to reduce requests: "
-                                "https://docs.neptune.ai/help/reducing_requests/."
-                                " To increase the limit for your workspace, contact sales@neptune.ai.",
+                                format_rate_limit_warning(response),
                                 exception=NeptuneWarning,
                             )
                         else:

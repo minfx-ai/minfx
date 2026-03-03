@@ -45,4 +45,4 @@ This module is used internally throughout Neptune to provide common functionalit
 See `../README.md` for information about the Neptune v2 client.
 
 ---
-48514220 2026-01-22T18:05:11
+e5eef531 2026-03-02T09:34:16

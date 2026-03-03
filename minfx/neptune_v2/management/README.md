@@ -37,4 +37,4 @@ from minfx.neptune_v2 import management
 See `../README.md` for information about the Neptune v2 client.
 
 ---
-31a0a05f 2026-01-21T22:53:13
+289f9a7a 2026-03-03T12:24:43

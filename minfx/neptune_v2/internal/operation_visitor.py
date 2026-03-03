@@ -30,7 +30,9 @@ from minfx.neptune_v2.internal.operation import (
     AssignInt,
     AssignString,
     ClearArtifact,
+    ClearFileLog,
     ClearFloatLog,
+    ClearHtmlLog,
     ClearImageLog,
     ClearStringLog,
     ClearStringSet,
@@ -38,7 +40,9 @@ from minfx.neptune_v2.internal.operation import (
     CopyAttribute,
     DeleteAttribute,
     DeleteFiles,
+    LogFiles,
     LogFloats,
+    LogHtml,
     LogImages,
     LogStrings,
     Operation,
@@ -114,6 +118,22 @@ class OperationVisitor(Generic[Ret]):
 
     @abc.abstractmethod
     def visit_clear_image_log(self, op: ClearImageLog) -> Ret:
+        pass
+
+    @abc.abstractmethod
+    def visit_log_html(self, op: LogHtml) -> Ret:
+        pass
+
+    @abc.abstractmethod
+    def visit_clear_html_log(self, op: ClearHtmlLog) -> Ret:
+        pass
+
+    @abc.abstractmethod
+    def visit_log_files(self, op: LogFiles) -> Ret:
+        pass
+
+    @abc.abstractmethod
+    def visit_clear_file_log(self, op: ClearFileLog) -> Ret:
         pass
 
     @abc.abstractmethod

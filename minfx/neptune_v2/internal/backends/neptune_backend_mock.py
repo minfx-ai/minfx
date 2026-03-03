@@ -117,7 +117,9 @@ if TYPE_CHECKING:
         AssignInt,
         AssignString,
         ClearArtifact,
+        ClearFileLog,
         ClearFloatLog,
+        ClearHtmlLog,
         ClearImageLog,
         ClearStringLog,
         ClearStringSet,
@@ -125,7 +127,9 @@ if TYPE_CHECKING:
         CopyAttribute,
         DeleteAttribute,
         DeleteFiles,
+        LogFiles,
         LogFloats,
+        LogHtml,
         LogImages,
         LogStrings,
         Operation,
@@ -749,6 +753,38 @@ class NeptuneBackendMock(NeptuneBackend):
             return StringSeries([])
 
         def visit_clear_image_log(self, op: ClearImageLog) -> Value | None:
+            if self._current_value is None:
+                return FileSeries([])
+            if not isinstance(self._current_value, FileSeries):
+                raise self._create_type_error("clear", FileSeries.__name__)
+            return FileSeries([])
+
+        def visit_log_html(self, op: LogHtml) -> Value | None:
+            raw_values = [File.from_content(base64_decode(x.value.data), extension="html") for x in op.values]
+            if self._current_value is None:
+                return FileSeries(raw_values)
+            if not isinstance(self._current_value, FileSeries):
+                raise self._create_type_error("log", FileSeries.__name__)
+            return FileSeries(self._current_value.values + raw_values)
+
+        def visit_clear_html_log(self, op: ClearHtmlLog) -> Value | None:
+            if self._current_value is None:
+                return FileSeries([])
+            if not isinstance(self._current_value, FileSeries):
+                raise self._create_type_error("clear", FileSeries.__name__)
+            return FileSeries([])
+
+        def visit_log_files(self, op: LogFiles) -> Value | None:
+            raw_values = [
+                File.from_content(base64_decode(x.value.data), extension=x.value.extension) for x in op.values
+            ]
+            if self._current_value is None:
+                return FileSeries(raw_values)
+            if not isinstance(self._current_value, FileSeries):
+                raise self._create_type_error("log", FileSeries.__name__)
+            return FileSeries(self._current_value.values + raw_values)
+
+        def visit_clear_file_log(self, op: ClearFileLog) -> Value | None:
             if self._current_value is None:
                 return FileSeries([])
             if not isinstance(self._current_value, FileSeries):

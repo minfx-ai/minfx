@@ -25,7 +25,9 @@ from minfx.neptune_v2.internal.operation import (
     AssignInt,
     AssignString,
     ClearArtifact,
+    ClearFileLog,
     ClearFloatLog,
+    ClearHtmlLog,
     ClearImageLog,
     ClearStringLog,
     ClearStringSet,
@@ -33,7 +35,9 @@ from minfx.neptune_v2.internal.operation import (
     CopyAttribute,
     DeleteAttribute,
     DeleteFiles,
+    LogFiles,
     LogFloats,
+    LogHtml,
     LogImages,
     LogStrings,
     Operation,
@@ -94,6 +98,18 @@ class OperationApiNameVisitor(OperationVisitor[str]):
 
     def visit_clear_image_log(self, _: ClearImageLog) -> str:
         return "clearImageSeries"
+
+    def visit_log_html(self, _: LogHtml) -> str:
+        return "logHtml"
+
+    def visit_clear_html_log(self, _: ClearHtmlLog) -> str:
+        return "clearHtmlSeries"
+
+    def visit_log_files(self, _: LogFiles) -> str:
+        return "logFiles"
+
+    def visit_clear_file_log(self, _: ClearFileLog) -> str:
+        return "clearFileSeries"
 
     def visit_config_float_series(self, _: ConfigFloatSeries) -> str:
         return "configFloatSeries"

@@ -162,7 +162,7 @@ def _get_url_from_token(api_token: str | None) -> str:
         return "unknown"
     try:
         creds = Credentials.from_token(api_token)
-        return creds.token_origin_address
+        return creds.api_address
     except Exception:
         return "unknown"
 

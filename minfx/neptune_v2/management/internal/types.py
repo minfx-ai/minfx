@@ -31,10 +31,10 @@ class ProjectVisibility:
 class ProjectMemberRole:
     VIEWER = "viewer"
     OWNER = "owner"
-    CONTRIBUTOR = "contributor"
+    MEMBER = "member"
 
     # Deprecated
-    MEMBER = CONTRIBUTOR
+    CONTRIBUTOR = MEMBER
     MANAGER = OWNER
 
 

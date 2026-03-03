@@ -93,7 +93,7 @@ def url_matches_backend_name(url: str, backend_name: str) -> bool:
 def get_backend_name_from_token(api_token: str) -> str | None:
     """Extract backend name from API token.
 
-    API token is base64-encoded JSON containing api_address (and optionally api_url).
+    API token is base64-encoded JSON containing api_address and api_key.
     We use api_address as the canonical backend identifier.
 
     Args:

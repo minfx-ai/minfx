@@ -16,6 +16,7 @@
 from __future__ import annotations
 
 __all__ = [
+    "format_rate_limit_warning",
     "get_retry_from_headers_or_default",
     "register_queue_size_provider",
     "unregister_queue_size_provider",
@@ -64,6 +65,12 @@ from minfx.neptune_v2.common.utils import reset_internal_ssl_state
 from minfx.neptune_v2.internal.utils.logger import get_logger
 
 _logger = get_logger()
+
+_LIMIT_TYPE_DISPLAY_NAMES = {
+    "key": "API key",
+    "user": "user",
+    "org": "organization",
+}
 
 MAX_RETRY_TIME = 30
 MAX_RETRY_MULTIPLIER = 10
@@ -115,6 +122,54 @@ def get_queue_size(backend_index: int | None = None) -> int | None:
     return None
 
 
+def format_rate_limit_warning(response: Any) -> str:
+    """Format a rate limit warning message with limit type details if available.
+
+    Parses the JSON response body to extract limitType and limitDuration.
+    Falls back to generic message if parsing fails.
+
+    Args:
+        response: HTTP response object with .text or .json() method
+
+    Returns:
+        Formatted warning message string
+    """
+    limit_type_display = None
+    limit_duration = None
+
+    try:
+        if hasattr(response, "json"):
+            data = response.json()
+        elif hasattr(response, "text"):
+            import json
+
+            data = json.loads(response.text)
+        else:
+            data = {}
+
+        raw_limit_type = data.get("limitType")
+        if raw_limit_type:
+            limit_type_display = _LIMIT_TYPE_DISPLAY_NAMES.get(raw_limit_type, raw_limit_type)
+        limit_duration = data.get("limitDuration")
+    except Exception:
+        pass
+
+    if limit_type_display and limit_duration:
+        return (
+            f"You're hitting the {limit_type_display} rate limit ({limit_duration} window)."
+            " See how to optimize the logging calls to reduce requests:"
+            " https://docs.neptune.ai/help/reducing_requests/. \n"
+            " To increase the limits for your workspace, contact sales@neptune.ai."
+        )
+
+    return (
+        "You're hitting the rate limit for your workspace."
+        " See how to optimize the logging calls to reduce requests:"
+        " https://docs.neptune.ai/help/reducing_requests/. \n"
+        " To increase the limits for your workspace, contact sales@neptune.ai."
+    )
+
+
 def get_retry_from_headers_or_default(headers: dict, retry_count: int) -> float:
     """Get retry delay from headers or compute exponential backoff.
 
@@ -126,11 +181,10 @@ def get_retry_from_headers_or_default(headers: dict, retry_count: int) -> float:
         Wait time in seconds (supports fractional seconds)
     """
     try:
-        return (
-            float(headers["retry-after"][0])
-            if "retry-after" in headers
-            else float(2 ** min(MAX_RETRY_MULTIPLIER, retry_count))
-        )
+        retry_after = headers.get("retry-after")
+        if retry_after is not None:
+            return float(retry_after)
+        return float(2 ** min(MAX_RETRY_MULTIPLIER, retry_count))
     except Exception:
         return float(min(2 ** min(MAX_RETRY_MULTIPLIER, retry_count), MAX_RETRY_TIME))
 

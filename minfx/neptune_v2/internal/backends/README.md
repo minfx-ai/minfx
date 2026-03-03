@@ -54,4 +54,4 @@ This module is used internally by the Neptune client to communicate with backend
 See `../README.md` for information about internal Neptune components.
 
 ---
-e4caafc0 2026-02-13T10:59:04
+e5eef531 2026-03-02T09:34:16

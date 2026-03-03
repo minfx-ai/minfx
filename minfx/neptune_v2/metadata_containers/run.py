@@ -85,7 +85,6 @@ from minfx.neptune_v2.internal.utils.git import (
     to_git_info,
     track_uncommitted_changes,
 )
-from minfx.neptune_v2.internal.utils.hashing import generate_hash
 from minfx.neptune_v2.internal.utils.limits import custom_run_id_exceeds_length
 from minfx.neptune_v2.internal.utils.ping_background_job import PingBackgroundJob
 from minfx.neptune_v2.internal.utils.runningmode import (
@@ -796,7 +795,9 @@ def capture_only_if_non_interactive(mode: Mode) -> bool:
 
 
 def generate_monitoring_namespace(*descriptors: str | int) -> str:
-    return f"monitoring/{generate_hash(*descriptors, length=8)}"
+    # Do not use hash for now to avoid collisions
+    # return f"monitoring/{generate_hash(*descriptors, length=8)}"
+    return f"monitoring"
 
 
 def check_for_extra_kwargs(caller_name: str, kwargs: dict):

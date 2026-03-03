@@ -34,7 +34,9 @@ from minfx.neptune_v2.internal.operation import (
     AssignFloat,
     AssignInt,
     AssignString,
+    ClearFileLog,
     ClearFloatLog,
+    ClearHtmlLog,
     ClearImageLog,
     ClearStringLog,
     ClearStringSet,
@@ -42,7 +44,9 @@ from minfx.neptune_v2.internal.operation import (
     CopyAttribute,
     DeleteAttribute,
     DeleteFiles,
+    LogFiles,
     LogFloats,
+    LogHtml,
     LogImages,
     LogStrings,
     Operation,
@@ -125,6 +129,8 @@ class _DataType(Enum):
     FLOAT_SERIES = "Float Series"
     STRING_SERIES = "String Series"
     IMAGE_SERIES = "Image Series"
+    HTML_SERIES = "Html Series"
+    GENERIC_FILE_SERIES = "File Series"
     STRING_SET = "String Set"
     ARTIFACT = "Artifact"
 
@@ -262,6 +268,34 @@ class _OperationsAccumulator(OperationVisitor[None]):
 
     def visit_clear_image_log(self, op: ClearImageLog) -> None:
         self._process_modify_op(_DataType.IMAGE_SERIES, op, self._clear_modifier())
+
+    def visit_log_html(self, op: LogHtml) -> None:
+        self._process_modify_op(
+            _DataType.HTML_SERIES,
+            op,
+            self._log_modifier(
+                LogHtml,
+                ClearHtmlLog,
+                lambda op1, op2: LogHtml(op1.path, op1.values + op2.values),
+            ),
+        )
+
+    def visit_clear_html_log(self, op: ClearHtmlLog) -> None:
+        self._process_modify_op(_DataType.HTML_SERIES, op, self._clear_modifier())
+
+    def visit_log_files(self, op: LogFiles) -> None:
+        self._process_modify_op(
+            _DataType.GENERIC_FILE_SERIES,
+            op,
+            self._log_modifier(
+                LogFiles,
+                ClearFileLog,
+                lambda op1, op2: LogFiles(op1.path, op1.values + op2.values),
+            ),
+        )
+
+    def visit_clear_file_log(self, op: ClearFileLog) -> None:
+        self._process_modify_op(_DataType.GENERIC_FILE_SERIES, op, self._clear_modifier())
 
     def visit_add_strings(self, op: AddStrings) -> None:
         self._process_modify_op(_DataType.STRING_SET, op, self._add_modifier())
