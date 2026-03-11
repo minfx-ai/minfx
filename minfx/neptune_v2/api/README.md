@@ -30,4 +30,4 @@ This module is used through high-level Neptune objects like `Run` and `Project` 
 See `../README.md` for information about the Neptune v2 client.
 
 ---
-7dcfce5a 2026-01-18T14:43:38
+a03f50a9 2026-03-11T20:49:35

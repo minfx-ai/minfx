@@ -106,7 +106,6 @@ from minfx.neptune_v2.types.value_visitor import ValueVisitor
 if TYPE_CHECKING:
     from minfx.neptune_v2.core.components.operation_storage import OperationStorage
     from minfx.neptune_v2.internal.artifacts.types import ArtifactFileData
-    from minfx.neptune_v2.internal.backends.nql import NQLQuery
     from minfx.neptune_v2.internal.credentials import Credentials
     from minfx.neptune_v2.internal.operation import (
         AddStrings,
@@ -576,12 +575,12 @@ class NeptuneBackendMock(NeptuneBackend):
         self,
         project_id: UniqueId,
         types: Iterable[ContainerType] | None = None,
-        query: NQLQuery | None = None,
         columns: Iterable[str] | None = None,
         limit: int | None = None,
         sort_by: str = "sys/creation_time",
         ascending: bool = False,
         progress_bar: ProgressBarType | None = None,
+        tags: list[str] | None = None,
     ) -> Generator[LeaderboardEntry, None, None]:
         """Non relevant for mock."""
 

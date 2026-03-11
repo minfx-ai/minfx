@@ -36,7 +36,7 @@ from minfx.neptune_v2.internal.utils.paths import (
     join_paths,
     parse_path,
 )
-from minfx.neptune_v2.internal.utils.run_state import RunState
+from minfx.neptune_v2.internal.utils.experiment_state import ExperimentState
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -78,8 +78,8 @@ class TableEntry:
         for attr in self._attributes:
             if attr.path == path:
                 _type = attr.type
-                if _type == AttributeType.RUN_STATE:
-                    return RunState.from_api(attr.properties.get("value")).value
+                if _type == AttributeType.EXPERIMENT_STATE:
+                    return ExperimentState.from_api(attr.properties.get("value")).value
                 if _type in (
                     AttributeType.FLOAT,
                     AttributeType.INT,

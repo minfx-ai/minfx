@@ -27,7 +27,6 @@ This module provides:
 - Operation serialization and transmission
 - File and artifact upload/download
 - Project and experiment management
-- NQL (Neptune Query Language) support
 
 ## Special Float Encoding
 
@@ -54,4 +53,4 @@ This module is used internally by the Neptune client to communicate with backend
 See `../README.md` for information about internal Neptune components.
 
 ---
-e5eef531 2026-03-02T09:34:16
+a03f50a9 2026-03-11T20:49:35

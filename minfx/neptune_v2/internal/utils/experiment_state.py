@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-__all__ = ["RunState"]
+__all__ = ["ExperimentState"]
 
 import enum
 
@@ -21,33 +21,33 @@ from minfx.neptune_v2.common.exceptions import NeptuneException
 
 
 # API mapping dictionaries (module-level to avoid Enum member conflicts)
-_API_TO_STATE: dict[str, "RunState"] = {}
-_STATE_TO_API: dict["RunState", str] = {}
+_API_TO_STATE: dict[str, "ExperimentState"] = {}
+_STATE_TO_API: dict["ExperimentState", str] = {}
 
 
-class RunState(enum.Enum):
-    """Represents the state of a Neptune run."""
+class ExperimentState(enum.Enum):
+    """Represents the state of a Neptune experiment/run."""
 
     ACTIVE = "Active"
     INACTIVE = "Inactive"
 
     @classmethod
-    def from_string(cls, value: str) -> "RunState":
-        """Create RunState from a string value (case-insensitive)."""
+    def from_string(cls, value: str) -> "ExperimentState":
+        """Create ExperimentState from a string value (case-insensitive)."""
         try:
             return cls(value.capitalize())
         except ValueError as e:
-            raise NeptuneException(f"Can't map RunState from string: {value}") from e
+            raise NeptuneException(f"Can't map ExperimentState from string: {value}") from e
 
     @classmethod
-    def from_api(cls, value: str) -> "RunState":
-        """Create RunState from an API response value."""
+    def from_api(cls, value: str) -> "ExperimentState":
+        """Create ExperimentState from an API response value."""
         if value not in _API_TO_STATE:
-            raise NeptuneException(f"Unknown RunState from API: {value}")
+            raise NeptuneException(f"Unknown ExperimentState from API: {value}")
         return _API_TO_STATE[value]
 
     def to_api(self) -> str:
-        """Convert RunState to API format."""
+        """Convert ExperimentState to API format."""
         return _STATE_TO_API[self]
 
 
@@ -55,13 +55,13 @@ class RunState(enum.Enum):
 # This cleanly separates the enum values from API serialization concerns
 _API_TO_STATE.update(
     {
-        "running": RunState.ACTIVE,
-        "idle": RunState.INACTIVE,
+        "running": ExperimentState.ACTIVE,
+        "idle": ExperimentState.INACTIVE,
     }
 )
 _STATE_TO_API.update(
     {
-        RunState.ACTIVE: "running",
-        RunState.INACTIVE: "idle",
+        ExperimentState.ACTIVE: "running",
+        ExperimentState.INACTIVE: "idle",
     }
 )

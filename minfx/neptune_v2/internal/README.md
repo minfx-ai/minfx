@@ -55,4 +55,4 @@ This module is for internal use only. Users should interact with Neptune through
 See `../README.md` for information about the Neptune v2 client.
 
 ---
-e5eef531 2026-03-02T09:34:16
+a03f50a9 2026-03-11T20:49:35

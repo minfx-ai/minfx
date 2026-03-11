@@ -1171,12 +1171,12 @@ class MultiBackend(NeptuneBackend):
         self,
         project_id,
         types=None,
-        query=None,
         columns=None,
         limit=None,
         sort_by="sys/creation_time",
         ascending=False,
         progress_bar=None,
+        tags=None,
     ):
         self._check_not_closed()
         backends_to_try = self._get_routable_backends()
@@ -1186,12 +1186,12 @@ class MultiBackend(NeptuneBackend):
                 result = state.backend.search_leaderboard_entries(
                     project_id=project_id,
                     types=types,
-                    query=query,
                     columns=columns,
                     limit=limit,
                     sort_by=sort_by,
                     ascending=ascending,
                     progress_bar=progress_bar,
+                    tags=tags,
                 )
                 self._transition_on_success(state.index)
                 return result

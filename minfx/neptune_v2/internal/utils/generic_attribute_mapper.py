@@ -35,7 +35,7 @@ atomic_attribute_types_map = {
     AttributeType.BOOL.value: "boolProperties",
     AttributeType.STRING.value: "stringProperties",
     AttributeType.DATETIME.value: "datetimeProperties",
-    AttributeType.RUN_STATE.value: "experimentStateProperties",
+    AttributeType.EXPERIMENT_STATE.value: "experimentStateProperties",
     AttributeType.NOTEBOOK_REF.value: "notebookRefProperties",
 }
 

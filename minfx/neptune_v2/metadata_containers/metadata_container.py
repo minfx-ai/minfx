@@ -116,7 +116,6 @@ if TYPE_CHECKING:
         Project,
     )
     from minfx.neptune_v2.internal.backends.neptune_backend import NeptuneBackend
-    from minfx.neptune_v2.internal.backends.nql import NQLQuery
     from minfx.neptune_v2.internal.background_job import BackgroundJob
     from minfx.neptune_v2.internal.container_type import ContainerType
     from minfx.neptune_v2.internal.operation_processors.operation_processor import OperationProcessor
@@ -823,12 +822,12 @@ class MetadataContainer(AbstractContextManager, NeptuneObject):
     def _fetch_entries(
         self,
         child_type: ContainerType,
-        query: NQLQuery,
         columns: Iterable[str] | None,
         limit: int | None,
         sort_by: str,
         ascending: bool,
         progress_bar: ProgressBarType | None,
+        tags: list[str] | None = None,
     ) -> Table:
         if columns is not None:
             # always return entries with 'sys/id' and the column chosen for sorting when filter applied
@@ -839,12 +838,12 @@ class MetadataContainer(AbstractContextManager, NeptuneObject):
         leaderboard_entries = self._backend.search_leaderboard_entries(
             project_id=self._project_id,
             types=[child_type],
-            query=query,
             columns=columns,
             limit=limit,
             sort_by=sort_by,
             ascending=ascending,
             progress_bar=progress_bar,
+            tags=tags,
         )
 
         leaderboard_entries = parse_dates(leaderboard_entries)

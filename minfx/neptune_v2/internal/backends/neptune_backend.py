@@ -50,7 +50,6 @@ if TYPE_CHECKING:
         StringSetAttribute,
         Workspace,
     )
-    from minfx.neptune_v2.internal.backends.nql import NQLQuery
     from minfx.neptune_v2.internal.container_type import ContainerType
     from minfx.neptune_v2.internal.id_formats import (
         QualifiedName,
@@ -332,12 +331,12 @@ class NeptuneBackend:
         self,
         project_id: UniqueId,
         types: list[ContainerType] | None = None,
-        query: NQLQuery | None = None,
         columns: list[str] | None = None,
         limit: int | None = None,
         sort_by: str = "sys/creation_time",
         ascending: bool = False,
         progress_bar: ProgressBarType | None = None,
+        tags: list[str] | None = None,
     ) -> Generator[LeaderboardEntry, None, None]:
         pass
 

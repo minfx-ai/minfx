@@ -25,12 +25,12 @@ from minfx.neptune_v2.attributes.atoms import (
     Artifact,
     Boolean,
     Datetime,
+    ExperimentState,
     File,
     Float,
     GitRef,
     Integer,
     NotebookRef,
-    RunState,
     String,
 )
 from minfx.neptune_v2.attributes.file_set import FileSet
@@ -60,7 +60,7 @@ _attribute_type_to_attr_class_map = {
     AttributeType.IMAGE_SERIES: FileSeries,
     AttributeType.STRING_SET: StringSet,
     AttributeType.GIT_REF: GitRef,
-    AttributeType.RUN_STATE: RunState,
+    AttributeType.EXPERIMENT_STATE: ExperimentState,
     AttributeType.NOTEBOOK_REF: NotebookRef,
     AttributeType.ARTIFACT: Artifact,
 }

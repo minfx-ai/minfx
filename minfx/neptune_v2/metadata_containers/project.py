@@ -45,10 +45,6 @@ from minfx.neptune_v2.internal.utils import (
 )
 from minfx.neptune_v2.internal.utils.deprecation import model_registry_deprecation
 from minfx.neptune_v2.metadata_containers import MetadataContainer
-from minfx.neptune_v2.metadata_containers.utils import (
-    build_raw_query,
-    prepare_nql_query,
-)
 from minfx.neptune_v2.types.mode import Mode
 from minfx.neptune_v2.typing import (
     ProgressBarCallback,
@@ -210,7 +206,6 @@ class Project(MetadataContainer):
     def fetch_runs_table(
         self,
         *,
-        query: str | None = None,
         id: str | Iterable[str] | None = None,
         state: Literal["inactive", "active"] | Iterable[Literal["inactive", "active"]] | None = None,
         owner: str | Iterable[str] | None = None,
@@ -228,9 +223,6 @@ class Project(MetadataContainer):
         Only runs matching all of the criteria will be returned.
 
         Args:
-            query: NQL query string. Syntax: https://docs-legacy.neptune.ai/usage/nql/
-                Example: `"(accuracy: float > 0.88) AND (loss: float < 0.2)"`.
-                Exclusive with the `id`, `state`, `owner`, and `tag` parameters.
             id: Neptune ID of a run, or list of several IDs.
                 Example: `"SAN-1"` or `["SAN-1", "SAN-2"]`.
                 Matching any element of the list is sufficient to pass the criterion.
@@ -307,17 +299,11 @@ class Project(MetadataContainer):
         See also the API reference in the docs:
             https://docs-legacy.neptune.ai/api/project#fetch_runs_table
         """
-        if any((id, state, owner, tag)) and query is not None:
-            raise ValueError(
-                "You can't use the 'query' parameter together with the 'id', 'state', 'owner', or 'tag' parameters."
-            )
-
         ids = as_list("id", id)
         states = as_list("state", state)
         owners = as_list("owner", owner)
         tags = as_list("tag", tag)
 
-        verify_type("query", query, (str, type(None)))
         verify_type("trashed", trashed, (bool, type(None)))
         verify_type("limit", limit, (int, type(None)))
         verify_type("sort_by", sort_by, str)
@@ -331,27 +317,21 @@ class Project(MetadataContainer):
         for state in states:
             verify_value("state", state.lower(), ("inactive", "active"))
 
-        if query is not None:
-            nql_query = build_raw_query(query, trashed=trashed)
-        else:
-            nql_query = prepare_nql_query(ids, states, owners, tags, trashed)
-
         return MetadataContainer._fetch_entries(
             self,
             child_type=ContainerType.RUN,
-            query=nql_query,
             columns=columns,
             limit=limit,
             sort_by=sort_by,
             ascending=ascending,
             progress_bar=progress_bar,
+            tags=tags,
         )
 
     @model_registry_deprecation
     def fetch_models_table(
         self,
         *,
-        query: str | None = None,
         columns: Iterable[str] | None = None,
         trashed: bool | None = False,
         limit: int | None = None,
@@ -362,8 +342,6 @@ class Project(MetadataContainer):
         """Retrieve models stored in the project.
 
         Args:
-            query: NQL query string. Syntax: https://docs-legacy.neptune.ai/usage/nql/
-                Example: `"(model_size: float > 100) AND (backbone: string = VGG)"`.
             trashed: Whether to retrieve trashed models.
                 If `True`, only trashed models are retrieved.
                 If `False`, only not-trashed models are retrieved.
@@ -402,15 +380,9 @@ class Project(MetadataContainer):
             ... # Extract the ID of the first listed (oldest) model object
             ... last_model_id = models_table_df["sys/id"].values[0]
 
-            >>> # Fetch models with VGG backbone
-            ... models_table_df = project.fetch_models_table(
-                    query="(backbone: string = VGG)"
-                ).to_pandas()
-
         See also the API reference in the docs:
             https://docs-legacy.neptune.ai/api/project#fetch_models_table
         """
-        verify_type("query", query, (str, type(None)))
         verify_type("limit", limit, (int, type(None)))
         verify_type("sort_by", sort_by, str)
         verify_type("ascending", ascending, bool)
@@ -419,12 +391,9 @@ class Project(MetadataContainer):
         if isinstance(limit, int) and limit <= 0:
             raise ValueError(f"Parameter 'limit' must be a positive integer or None. Got {limit}.")
 
-        query = query if query is not None else ""
-        nql = build_raw_query(query=query, trashed=trashed)
         return MetadataContainer._fetch_entries(
             self,
             child_type=ContainerType.MODEL,
-            query=nql,
             columns=columns,
             limit=limit,
             sort_by=sort_by,

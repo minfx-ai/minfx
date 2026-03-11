@@ -30,4 +30,4 @@ The integration is automatically available when the `neptune-pandas` package is 
 See `../README.md` for information about Neptune integrations.
 
 ---
-7dcfce5a 2026-01-18T14:43:38
+1cf19d5d 2026-03-11T13:37:57

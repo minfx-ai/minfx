@@ -36,13 +36,6 @@ from minfx.neptune_v2.exceptions import (
     NeptuneObjectCreationConflict,
 )
 from minfx.neptune_v2.internal.backends.backend_config import BackendConfig
-from minfx.neptune_v2.internal.backends.nql import (
-    NQLAggregator,
-    NQLAttributeOperator,
-    NQLAttributeType,
-    NQLQueryAggregate,
-    NQLQueryAttribute,
-)
 from minfx.neptune_v2.internal.container_type import ContainerType
 from minfx.neptune_v2.internal.id_formats import QualifiedName
 from minfx.neptune_v2.internal.init.parameters import (
@@ -57,7 +50,6 @@ from minfx.neptune_v2.internal.utils import verify_type
 from minfx.neptune_v2.internal.utils.deprecation import model_registry_deprecation
 from minfx.neptune_v2.internal.utils.ping_background_job import PingBackgroundJob
 from minfx.neptune_v2.metadata_containers import MetadataContainer
-from minfx.neptune_v2.metadata_containers.utils import build_raw_query
 from minfx.neptune_v2.types.mode import Mode
 from minfx.neptune_v2.typing import (
     ProgressBarCallback,
@@ -281,7 +273,6 @@ class Model(MetadataContainer):
     def fetch_model_versions_table(
         self,
         *,
-        query: str | None = None,
         columns: Iterable[str] | None = None,
         limit: int | None = None,
         sort_by: str = "sys/creation_time",
@@ -291,8 +282,6 @@ class Model(MetadataContainer):
         """Retrieve all versions of the given model.
 
         Args:
-            query: NQL query string. Syntax: https://docs-legacy.neptune.ai/usage/nql/
-                Example: `"(model_size: float > 100) AND (backbone: string = VGG)"`.
             columns: Names of columns to include in the table, as a list of field names.
                 The Neptune ID ("sys/id") is included automatically.
                 If `None` (default), all the columns of the model versions table are included,
@@ -325,13 +314,9 @@ class Model(MetadataContainer):
             ... # Extract the ID of the largest model version object
             ... largest_model_version_id = model_versions_df["sys/id"].values[0]
 
-            >>> # Fetch model versions with VGG backbone
-            ... models_table_df = project.fetch_model_versions_table(query="(backbone: string = VGG)").to_pandas()
-
         See also the API referene:
             https://docs-legacy.neptune.ai/api/model/#fetch_model_versions_table
         """
-        verify_type("query", query, (str, type(None)))
         verify_type("limit", limit, (int, type(None)))
         verify_type("sort_by", sort_by, str)
         verify_type("ascending", ascending, bool)
@@ -340,24 +325,9 @@ class Model(MetadataContainer):
         if isinstance(limit, int) and limit <= 0:
             raise ValueError(f"Parameter 'limit' must be a positive integer or None. Got {limit}.")
 
-        query = query if query is not None else ""
-        nql = build_raw_query(query=query, trashed=False)
-        nql = NQLQueryAggregate(
-            items=[
-                nql,
-                NQLQueryAttribute(
-                    name="sys/model_id",
-                    value=self._sys_id,
-                    operator=NQLAttributeOperator.EQUALS,
-                    type=NQLAttributeType.STRING,
-                ),
-            ],
-            aggregator=NQLAggregator.AND,
-        )
         return MetadataContainer._fetch_entries(
             self,
             child_type=ContainerType.MODEL_VERSION,
-            query=nql,
             columns=columns,
             limit=limit,
             sort_by=sort_by,

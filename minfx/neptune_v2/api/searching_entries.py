@@ -25,28 +25,18 @@ from typing import (
 
 from bravado.client import construct_request  # type: ignore[import-untyped]
 from bravado.config import RequestConfig  # type: ignore[import-untyped]
-from bravado.exception import HTTPBadRequest  # type: ignore[import-untyped]
+
 from typing_extensions import (
     Literal,
     TypeAlias,
 )
 
-from minfx.neptune_v2.exceptions import NeptuneInvalidQueryException
 from minfx.neptune_v2.internal.backends.api_model import (
     AttributeType,
     AttributeWithProperties,
     LeaderboardEntry,
 )
 from minfx.neptune_v2.internal.backends.hosted_client import DEFAULT_REQUEST_KWARGS
-from minfx.neptune_v2.internal.backends.nql import (
-    NQLAggregator,
-    NQLAttributeOperator,
-    NQLAttributeType,
-    NQLEmptyQuery,
-    NQLQuery,
-    NQLQueryAggregate,
-    NQLQueryAttribute,
-)
 from minfx.neptune_v2.internal.backends.utils import construct_progress_bar
 from minfx.neptune_v2.internal.init.parameters import MAX_SERVER_OFFSET
 
@@ -95,23 +85,10 @@ def get_single_page(
     sort_by_column_type: SORT_BY_COLUMN_TYPE,
     ascending: bool,
     types: Iterable[str] | None,
-    query: NQLQuery | None,
     searching_after: str | None,
+    tags: list[str] | None = None,
 ) -> dict[str, object]:
-    normalized_query = query or NQLEmptyQuery()
     sort_by_column_type = sort_by_column_type if sort_by_column_type else AttributeType.STRING.value
-    if sort_by and searching_after:
-        sort_by_as_nql = NQLQueryAttribute(
-            name=sort_by,
-            type=NQLAttributeType(sort_by_column_type),
-            operator=NQLAttributeOperator.GREATER_THAN,
-            value=searching_after,
-        )
-
-        if not isinstance(normalized_query, NQLEmptyQuery):
-            normalized_query = NQLQueryAggregate(items=[normalized_query, sort_by_as_nql], aggregator=NQLAggregator.AND)
-        else:
-            normalized_query = sort_by_as_nql
 
     sorting = (
         {
@@ -134,8 +111,8 @@ def get_single_page(
         "params": {
             **sorting,
             **attributes_filter,
-            "query": {"query": str(normalized_query)},
             "pagination": {"limit": limit, "offset": offset},
+            **({"tags": tags} if tags else {}),
         },
     }
 
@@ -145,17 +122,11 @@ def get_single_page(
 
     http_client = client.swagger_spec.http_client
 
-    try:
-        return (
-            http_client.request(request_params, operation=None, request_config=request_config)
-            .response()
-            .incoming_response.json()
-        )
-    except HTTPBadRequest as e:
-        title = e.response.json().get("title")
-        if title == "Syntax error":
-            raise NeptuneInvalidQueryException(nql_query=str(normalized_query)) from None
-        raise
+    return (
+        http_client.request(request_params, operation=None, request_config=request_config)
+        .response()
+        .incoming_response.json()
+    )
 
 
 def to_leaderboard_entry(entry: dict[str, object]) -> LeaderboardEntry:
@@ -163,8 +134,11 @@ def to_leaderboard_entry(entry: dict[str, object]) -> LeaderboardEntry:
     attributes_raw = entry["attributes"]
     if not isinstance(experiment_id, str):
         raise TypeError(f"Expected experimentId to be str, got {type(experiment_id)}")
+    # Handle both list format (legacy) and dict format (new: keyed by AttributeId)
+    if isinstance(attributes_raw, dict):
+        attributes_raw = list(attributes_raw.values())
     if not isinstance(attributes_raw, list):
-        raise TypeError(f"Expected attributes to be list, got {type(attributes_raw)}")
+        raise TypeError(f"Expected attributes to be list or dict, got {type(attributes_raw)}")
     return LeaderboardEntry(
         id=experiment_id,
         attributes=[

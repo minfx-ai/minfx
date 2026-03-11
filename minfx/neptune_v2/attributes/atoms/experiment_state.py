@@ -13,10 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-__all__ = ["RunState"]
+__all__ = ["ExperimentState"]
 
 from minfx.neptune_v2.attributes.atoms.atom import Atom
 
 
-class RunState(Atom):
+class ExperimentState(Atom):
     pass

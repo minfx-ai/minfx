@@ -146,7 +146,6 @@ if TYPE_CHECKING:
     from minfx.neptune_v2.core.components.operation_storage import OperationStorage
     from minfx.neptune_v2.internal.artifacts.types import ArtifactFileData
     from minfx.neptune_v2.internal.backends.api_model import ClientConfig
-    from minfx.neptune_v2.internal.backends.nql import NQLQuery
     from minfx.neptune_v2.internal.credentials import Credentials
     from minfx.neptune_v2.internal.id_formats import (
         QualifiedName,
@@ -164,16 +163,7 @@ ATOMIC_ATTRIBUTE_TYPES = {
     AttributeType.STRING.value,
     AttributeType.BOOL.value,
     AttributeType.DATETIME.value,
-    AttributeType.RUN_STATE.value,
-}
-
-ATOMIC_ATTRIBUTE_TYPES = {
-    AttributeType.INT.value,
-    AttributeType.FLOAT.value,
-    AttributeType.STRING.value,
-    AttributeType.BOOL.value,
-    AttributeType.DATETIME.value,
-    AttributeType.RUN_STATE.value,
+    AttributeType.EXPERIMENT_STATE.value,
 }
 
 
@@ -1166,13 +1156,13 @@ class HostedNeptuneBackend(NeptuneBackend):
         self,
         project_id: UniqueId,
         types: Iterable[ContainerType] | None = None,
-        query: NQLQuery | None = None,
         columns: Iterable[str] | None = None,
         limit: int | None = None,
         sort_by: str = "sys/creation_time",
         ascending: bool = False,
         progress_bar: ProgressBarType | None = None,
         step_size: int | None = None,
+        tags: list[str] | None = None,
     ) -> Generator[LeaderboardEntry, None, None]:
         default_step_size = step_size or int(os.getenv(NEPTUNE_FETCH_TABLE_STEP_SIZE, "100"))
 
@@ -1194,7 +1184,6 @@ class HostedNeptuneBackend(NeptuneBackend):
                 client=self.leaderboard_client,
                 project_id=project_id,
                 types=types_filter,
-                query=query,
                 attributes_filter=attributes_filter,
                 step_size=step_size,
                 limit=limit,
@@ -1202,6 +1191,7 @@ class HostedNeptuneBackend(NeptuneBackend):
                 ascending=ascending,
                 sort_by_column_type=sort_by_column_type,
                 progress_bar=progress_bar,
+                tags=tags,
             )
         except HTTPNotFound:
             raise ProjectNotFound(project_id)

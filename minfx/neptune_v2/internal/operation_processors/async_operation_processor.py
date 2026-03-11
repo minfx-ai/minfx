@@ -417,8 +417,12 @@ class AsyncOperationProcessor(WithResources, OperationProcessor):
                     logger.debug("Skipped setting sys/state (read-only on Neptune backend)")
                     continue
 
+                backend_prefix = (
+                    f"[backend {self._processor._backend_index}] " if self._processor._backend_index is not None else ""
+                )
                 logger.error(
-                    "Error occurred during asynchronous operation processing: %s",
+                    "%sError occurred during asynchronous operation processing: %s",
+                    backend_prefix,
                     error,
                 )
 

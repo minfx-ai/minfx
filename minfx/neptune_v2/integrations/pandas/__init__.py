@@ -31,7 +31,7 @@ from minfx.neptune_v2.internal.backends.api_model import (
     LeaderboardEntry,
 )
 from minfx.neptune_v2.internal.utils.logger import get_logger
-from minfx.neptune_v2.internal.utils.run_state import RunState
+from minfx.neptune_v2.internal.utils.experiment_state import ExperimentState
 
 if TYPE_CHECKING:
     from minfx.neptune_v2.table import Table
@@ -46,8 +46,8 @@ def to_pandas(table: Table) -> pd.DataFrame:
     def make_attribute_value(attribute: AttributeWithProperties) -> PandasAttributeValue:
         _type = attribute.type
         _properties = attribute.properties
-        if _type == AttributeType.RUN_STATE:
-            return RunState.from_api(_properties.get("value")).value
+        if _type == AttributeType.EXPERIMENT_STATE:
+            return ExperimentState.from_api(_properties.get("value")).value
         if _type in (
             AttributeType.FLOAT,
             AttributeType.INT,

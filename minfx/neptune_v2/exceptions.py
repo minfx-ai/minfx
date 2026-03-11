@@ -58,7 +58,6 @@ __all__ = [
     "NeptuneFeatureNotAvailableException",
     "NeptuneFieldCountLimitExceedException",
     "NeptuneInvalidApiTokenException",
-    "NeptuneInvalidQueryException",
     "NeptuneLegacyIncompatibilityException",
     "NeptuneLegacyProjectException",
     "NeptuneLimitExceedException",
@@ -1241,15 +1240,6 @@ Current disk utilization ({disk_utilization}%) exceeds the limit ({utilization_l
         super().__init__(
             message.format(disk_utilization=disk_utilization, utilization_limit=utilization_limit, **STYLES)
         )
-
-
-class NeptuneInvalidQueryException(NeptuneException):
-    def __init__(self, nql_query: str):
-        message = f"""
-The provided NQL query is invalid: {nql_query}.
-For syntax help, see https://docs-legacy.neptune.ai/usage/nql/
-"""
-        super().__init__(message)
 
 
 # =============================================================================

@@ -18,7 +18,7 @@ Atoms represent single-value attributes that can be assigned and retrieved. Unli
 - `Artifact`: Artifact reference attribute
 - `GitRef`: Git reference attribute
 - `NotebookRef`: Jupyter notebook reference attribute
-- `RunState`: Experiment run state attribute
+- `ExperimentState`: Experiment run state attribute
 - `CopiableAtom`: Base class for atoms that support copying
 
 ## Functionality
@@ -52,4 +52,4 @@ run["config/use_augmentation"] = True  # Boolean atom
 See `../README.md` for information about the attributes system.
 
 ---
-dc7ebd1a 2026-01-22T17:59:36
+1cf19d5d 2026-03-11T13:37:57

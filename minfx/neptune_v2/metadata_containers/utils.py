@@ -17,7 +17,6 @@ from __future__ import annotations
 
 __all__ = [
     "parse_dates",
-    "prepare_nql_query",
 ]
 
 from typing import (
@@ -34,104 +33,7 @@ from minfx.neptune_v2.internal.backends.api_model import (
     AttributeWithProperties,
     LeaderboardEntry,
 )
-from minfx.neptune_v2.internal.backends.nql import (
-    NQLAggregator,
-    NQLAttributeOperator,
-    NQLAttributeType,
-    NQLQuery,
-    NQLQueryAggregate,
-    NQLQueryAttribute,
-    RawNQLQuery,
-)
 from minfx.neptune_v2.internal.utils.iso_dates import parse_iso_date
-from minfx.neptune_v2.internal.utils.run_state import RunState
-
-
-def prepare_nql_query(
-    ids: Iterable[str] | None,
-    states: Iterable[str] | None,
-    owners: Iterable[str] | None,
-    tags: Iterable[str] | None,
-    trashed: bool | None,
-) -> NQLQueryAggregate:
-    query_items: list[NQLQueryAttribute | NQLQueryAggregate] = []
-
-    if trashed is not None:
-        query_items.append(
-            NQLQueryAttribute(
-                name="sys/trashed",
-                type=NQLAttributeType.BOOLEAN,
-                operator=NQLAttributeOperator.EQUALS,
-                value=trashed,
-            )
-        )
-
-    if ids:
-        query_items.append(
-            NQLQueryAggregate(
-                items=[
-                    NQLQueryAttribute(
-                        name="sys/id",
-                        type=NQLAttributeType.STRING,
-                        operator=NQLAttributeOperator.EQUALS,
-                        value=api_id,
-                    )
-                    for api_id in ids
-                ],
-                aggregator=NQLAggregator.OR,
-            )
-        )
-
-    if states:
-        query_items.append(
-            NQLQueryAggregate(
-                items=[
-                    NQLQueryAttribute(
-                        name="sys/state",
-                        type=NQLAttributeType.EXPERIMENT_STATE,
-                        operator=NQLAttributeOperator.EQUALS,
-                        value=RunState.from_string(state).to_api(),
-                    )
-                    for state in states
-                ],
-                aggregator=NQLAggregator.OR,
-            )
-        )
-
-    if owners:
-        query_items.append(
-            NQLQueryAggregate(
-                items=[
-                    NQLQueryAttribute(
-                        name="sys/owner",
-                        type=NQLAttributeType.STRING,
-                        operator=NQLAttributeOperator.EQUALS,
-                        value=owner,
-                    )
-                    for owner in owners
-                ],
-                aggregator=NQLAggregator.OR,
-            )
-        )
-
-    if tags:
-        query_items.append(
-            NQLQueryAggregate(
-                items=[
-                    NQLQueryAttribute(
-                        name="sys/tags",
-                        type=NQLAttributeType.STRING_SET,
-                        operator=NQLAttributeOperator.CONTAINS,
-                        value=tag,
-                    )
-                    for tag in tags
-                ],
-                aggregator=NQLAggregator.AND,
-            )
-        )
-
-    query = NQLQueryAggregate(items=query_items, aggregator=NQLAggregator.AND)
-    return query
 
 
 def parse_dates(leaderboard_entries: Iterable[LeaderboardEntry]) -> Generator[LeaderboardEntry, None, None]:
@@ -165,21 +67,3 @@ def _parse_entry(entry: LeaderboardEntry) -> LeaderboardEntry:
             exception=NeptuneWarning,
         )
         return entry
-
-
-def build_raw_query(query: str, trashed: bool | None) -> NQLQuery:
-    raw_nql = RawNQLQuery(query)
-
-    if trashed is None:
-        return raw_nql
-
-    nql = NQLQueryAggregate(
-        items=[
-            raw_nql,
-            NQLQueryAttribute(
-                name="sys/trashed", type=NQLAttributeType.BOOLEAN, operator=NQLAttributeOperator.EQUALS, value=trashed
-            ),
-        ],
-        aggregator=NQLAggregator.AND,
-    )
-    return nql

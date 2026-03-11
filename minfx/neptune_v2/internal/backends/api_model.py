@@ -210,7 +210,7 @@ class AttributeType(Enum):
     IMAGE_SERIES = "imageSeries"
     STRING_SET = "stringSet"
     GIT_REF = "gitRef"
-    RUN_STATE = "experimentState"
+    EXPERIMENT_STATE = "experimentState"
     NOTEBOOK_REF = "notebookRef"
     ARTIFACT = "artifact"
 
@@ -222,7 +222,7 @@ class AttributeProperties(TypedDict, total=False):
     Not all keys are present for all attribute types.
     """
 
-    # Common value properties (FLOAT, INT, BOOL, STRING, DATETIME, RUN_STATE)
+    # Common value properties (FLOAT, INT, BOOL, STRING, DATETIME, EXPERIMENT_STATE)
     value: float | int | bool | str
     # Series properties (FLOAT_SERIES, STRING_SERIES)
     last: float | str | None
