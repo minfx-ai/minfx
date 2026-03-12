@@ -93,7 +93,7 @@ class ApiExperiment:
     def from_experiment(cls, response_exp: object) -> ApiExperiment:
         return cls(
             id=response_exp.id,
-            type=ContainerType.from_api(response_exp.type),
+            type=ContainerType.from_api(getattr(response_exp, "type", "run")),
             sys_id=response_exp.shortId,
             workspace=response_exp.organizationName,
             project_name=response_exp.projectName,

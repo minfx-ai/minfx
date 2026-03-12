@@ -368,7 +368,7 @@ class HostedNeptuneBackend(NeptuneBackend):
 
             if (
                 expected_container_type is not None
-                and ContainerType.from_api(experiment.type) != expected_container_type
+                and ContainerType.from_api(getattr(experiment, "type", "run")) != expected_container_type
             ):
                 raise MetadataContainerNotFound.of_container_type(
                     container_type=expected_container_type, container_id=container_id
