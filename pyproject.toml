@@ -14,7 +14,6 @@ keywords = ["minfx"]
 classifiers = ["Development Status :: 3 - Alpha", "Intended Audience :: Developers", "Operating System :: OS Independent", "Programming Language :: Python :: 3", "Programming Language :: Python :: 3.8", "Programming Language :: Python :: 3.9", "Programming Language :: Python :: 3.10", "Programming Language :: Python :: 3.11", "Programming Language :: Python :: 3.12"]
 requires-python = ">=3.8"
 dependencies = [
-  "neptune-scale",
   # Dependencies for bundled neptune_v2 (from neptune_v2/pyproject.toml):
   "typing-extensions>=3.10.0",
   "six>=1.12.0",
@@ -51,14 +50,12 @@ dev = [
   "mock",
   "freezegun",
   "matplotlib",
-  "munch",
   "moto",
   "altair",
   "bokeh",
   "plotly",
   "seaborn",
   "vega_datasets",
-  "torch",
   "faker",         # For e2e tests
 ]
 

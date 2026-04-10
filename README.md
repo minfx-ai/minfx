@@ -19,7 +19,7 @@ import neptune
 ```
 to
 ```
-import minfx.neptune_v2 as neptune
+import minfx as neptune
 ```
 
 Go to https://minfx.ai to learn more.
