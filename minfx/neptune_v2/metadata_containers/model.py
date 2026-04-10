@@ -330,6 +330,7 @@ class Model(MetadataContainer):
             child_type=ContainerType.MODEL_VERSION,
             columns=columns,
             limit=limit,
+            offset=0,
             sort_by=sort_by,
             ascending=ascending,
             progress_bar=progress_bar,

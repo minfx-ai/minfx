@@ -24,6 +24,7 @@ __all__ = [
 ]
 
 import itertools
+import logging
 import os
 import random
 import time
@@ -201,6 +202,49 @@ def _compute_wait_time(retry_num: int) -> float:
     return min(2 ** min(MAX_RETRY_MULTIPLIER, retry_num), MAX_RETRY_TIME)
 
 
+def _format_error_details(error: Exception) -> str:
+    """Format detailed error information for debug logging.
+
+    Includes the error message, any cause chain, and connection-specific details.
+    """
+    parts = [f"{type(error).__name__}: {error}"]
+
+    # Include cause chain
+    cause = error.__cause__
+    depth = 0
+    while cause is not None and depth < 5:  # Limit depth to avoid infinite loops
+        parts.append(f"  Caused by: {type(cause).__name__}: {cause}")
+        cause = cause.__cause__
+        depth += 1
+
+    # Extract connection-specific details from common error types
+    if hasattr(error, "request") and error.request is not None:
+        req = error.request
+        if hasattr(req, "url"):
+            parts.append(f"  URL: {req.url}")
+        if hasattr(req, "method"):
+            parts.append(f"  Method: {req.method}")
+
+    if hasattr(error, "response") and error.response is not None:
+        resp = error.response
+        if hasattr(resp, "status_code"):
+            parts.append(f"  Status code: {resp.status_code}")
+        if hasattr(resp, "reason"):
+            parts.append(f"  Reason: {resp.reason}")
+
+    # For socket/connection errors, try to extract host/port info
+    if hasattr(error, "args") and error.args:
+        for arg in error.args:
+            if hasattr(arg, "reason"):
+                parts.append(f"  Reason: {arg.reason}")
+            if hasattr(arg, "host"):
+                parts.append(f"  Host: {arg.host}")
+            if hasattr(arg, "port"):
+                parts.append(f"  Port: {arg.port}")
+
+    return "\n".join(parts)
+
+
 def _log_retry(
     error: Exception,
     wait_time: float,
@@ -226,6 +270,14 @@ def _log_retry(
         retry_num + 1,
         remaining,
         queue_suffix,
+    )
+
+    # Log detailed error information at debug level for troubleshooting
+    error_details = _format_error_details(error)
+    _logger.warning(
+        "%sConnection error details:\n%s",
+        backend_prefix,
+        error_details,
     )
 
 

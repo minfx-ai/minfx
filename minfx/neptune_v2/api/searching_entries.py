@@ -78,7 +78,7 @@ def get_single_page(
     *,
     client: SwaggerClientWrapper,
     project_id: UniqueId,
-    attributes_filter: dict[str, list[str]],
+    attributes_filter: dict[str, object],
     limit: int,
     offset: int,
     sort_by: str,
@@ -87,6 +87,10 @@ def get_single_page(
     types: Iterable[str] | None,
     searching_after: str | None,
     tags: list[str] | None = None,
+    run_ids: list[str] | None = None,
+    owners: list[str] | None = None,
+    states: list[str] | None = None,
+    trashed: bool | None = False,
 ) -> dict[str, object]:
     sort_by_column_type = sort_by_column_type if sort_by_column_type else AttributeType.STRING.value
 
@@ -105,6 +109,23 @@ def get_single_page(
         else {}
     )
 
+    attribute_strings = [
+        item.get("path")
+        for item in attributes_filter.get("attributeFilters", [])
+        if isinstance(item, dict) and isinstance(item.get("path"), str)
+    ]
+    mapped_states: list[str] | None = None
+    if states:
+        mapped_states = []
+        for state in states:
+            normalized = state.lower()
+            if normalized == "active":
+                mapped_states.append("running")
+            elif normalized == "inactive":
+                mapped_states.extend(["idle", "crashed"])
+            else:
+                mapped_states.append(normalized)
+
     params = {
         "projectIdentifier": project_id,
         "type": types,
@@ -113,6 +134,11 @@ def get_single_page(
             **attributes_filter,
             "pagination": {"limit": limit, "offset": offset},
             **({"tags": tags} if tags else {}),
+            **({"runIds": run_ids} if run_ids else {}),
+            **({"owners": owners} if owners else {}),
+            **({"experimentStates": mapped_states} if mapped_states else {}),
+            **({"trashed": trashed} if trashed is not None else {}),
+            **({"attributeStrings": attribute_strings} if attribute_strings else {}),
         },
     }
 
@@ -161,6 +187,7 @@ def iter_over_pages(
     *,
     step_size: int,
     limit: int | None,
+    offset: int = 0,
     sort_by: str,
     sort_by_column_type: SORT_BY_COLUMN_TYPE,
     ascending: bool,
@@ -173,7 +200,7 @@ def iter_over_pages(
 
     total = get_single_page(
         limit=0,
-        offset=0,
+        offset=offset,
         sort_by=sort_by,
         ascending=ascending,
         sort_by_column_type=sort_by_column_type,
@@ -205,13 +232,17 @@ def iter_over_pages(
 
                 searching_after = page_attribute.properties["value"]
 
-            for offset in range(0, max_offset, step_size):
-                local_limit = min(step_size, max_offset - offset)
+            page_start_offset = offset if last_page is None else 0
+            if page_start_offset >= max_offset:
+                return
+
+            for local_offset in range(page_start_offset, max_offset, step_size):
+                local_limit = min(step_size, max_offset - local_offset)
                 if extracted_records + local_limit > limit:
                     local_limit = limit - extracted_records
                 result = get_single_page(
                     limit=local_limit,
-                    offset=offset,
+                    offset=local_offset,
                     sort_by=sort_by,
                     sort_by_column_type=sort_by_column_type,
                     searching_after=searching_after,
@@ -220,7 +251,7 @@ def iter_over_pages(
                 )
 
                 # fetch the item count everytime a new page is started (except for the very fist page)
-                if offset == 0 and last_page is not None:
+                if local_offset == page_start_offset and last_page is not None:
                     total += result.get("matchingItemCount", 0)
 
                 total = min(total, limit)

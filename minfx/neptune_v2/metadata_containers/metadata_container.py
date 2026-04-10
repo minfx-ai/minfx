@@ -824,10 +824,15 @@ class MetadataContainer(AbstractContextManager, NeptuneObject):
         child_type: ContainerType,
         columns: Iterable[str] | None,
         limit: int | None,
+        offset: int,
         sort_by: str,
         ascending: bool,
         progress_bar: ProgressBarType | None,
         tags: list[str] | None = None,
+        run_ids: list[str] | None = None,
+        owners: list[str] | None = None,
+        states: list[str] | None = None,
+        trashed: bool | None = False,
     ) -> Table:
         if columns is not None:
             # always return entries with 'sys/id' and the column chosen for sorting when filter applied
@@ -840,10 +845,15 @@ class MetadataContainer(AbstractContextManager, NeptuneObject):
             types=[child_type],
             columns=columns,
             limit=limit,
+            offset=offset,
             sort_by=sort_by,
             ascending=ascending,
             progress_bar=progress_bar,
             tags=tags,
+            run_ids=run_ids,
+            owners=owners,
+            states=states,
+            trashed=trashed,
         )
 
         leaderboard_entries = parse_dates(leaderboard_entries)

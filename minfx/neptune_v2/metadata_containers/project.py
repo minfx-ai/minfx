@@ -213,6 +213,7 @@ class Project(MetadataContainer):
         columns: Iterable[str] | None = None,
         trashed: bool | None = False,
         limit: int | None = None,
+        offset: int | None = None,
         sort_by: str = "sys/creation_time",
         ascending: bool = False,
         progress_bar: ProgressBarType | None = None,
@@ -245,6 +246,8 @@ class Project(MetadataContainer):
                 If `False` (default), only not-trashed runs are retrieved.
                 If `None`, both trashed and not-trashed runs are retrieved.
             limit: How many entries to return at most. If `None`, all entries are returned.
+            offset: Number of entries to skip from the beginning of the sorted result set.
+                If `None`, starts from the first entry.
             sort_by: Name of the field to sort the results by.
                 The field must represent a simple type (string, float, datetime, integer, or Boolean).
             ascending: Whether to sort the entries in ascending order of the sorting column values.
@@ -306,6 +309,7 @@ class Project(MetadataContainer):
 
         verify_type("trashed", trashed, (bool, type(None)))
         verify_type("limit", limit, (int, type(None)))
+        verify_type("offset", offset, (int, type(None)))
         verify_type("sort_by", sort_by, str)
         verify_type("ascending", ascending, bool)
         verify_type("progress_bar", progress_bar, (type(None), bool, type(ProgressBarCallback)))
@@ -313,6 +317,8 @@ class Project(MetadataContainer):
 
         if isinstance(limit, int) and limit <= 0:
             raise ValueError(f"Parameter 'limit' must be a positive integer or None. Got {limit}.")
+        if isinstance(offset, int) and offset < 0:
+            raise ValueError(f"Parameter 'offset' must be a non-negative integer or None. Got {offset}.")
 
         for state in states:
             verify_value("state", state.lower(), ("inactive", "active"))
@@ -322,10 +328,15 @@ class Project(MetadataContainer):
             child_type=ContainerType.RUN,
             columns=columns,
             limit=limit,
+            offset=offset or 0,
             sort_by=sort_by,
             ascending=ascending,
             progress_bar=progress_bar,
             tags=tags,
+            run_ids=ids,
+            owners=owners,
+            states=states,
+            trashed=trashed,
         )
 
     @model_registry_deprecation
@@ -396,6 +407,7 @@ class Project(MetadataContainer):
             child_type=ContainerType.MODEL,
             columns=columns,
             limit=limit,
+            offset=0,
             sort_by=sort_by,
             ascending=ascending,
             progress_bar=progress_bar,

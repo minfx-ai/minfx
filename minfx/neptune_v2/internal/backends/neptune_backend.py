@@ -333,10 +333,15 @@ class NeptuneBackend:
         types: list[ContainerType] | None = None,
         columns: list[str] | None = None,
         limit: int | None = None,
+        offset: int = 0,
         sort_by: str = "sys/creation_time",
         ascending: bool = False,
         progress_bar: ProgressBarType | None = None,
         tags: list[str] | None = None,
+        run_ids: list[str] | None = None,
+        owners: list[str] | None = None,
+        states: list[str] | None = None,
+        trashed: bool | None = False,
     ) -> Generator[LeaderboardEntry, None, None]:
         pass
 

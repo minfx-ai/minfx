@@ -1158,11 +1158,16 @@ class HostedNeptuneBackend(NeptuneBackend):
         types: Iterable[ContainerType] | None = None,
         columns: Iterable[str] | None = None,
         limit: int | None = None,
+        offset: int = 0,
         sort_by: str = "sys/creation_time",
         ascending: bool = False,
         progress_bar: ProgressBarType | None = None,
         step_size: int | None = None,
         tags: list[str] | None = None,
+        run_ids: list[str] | None = None,
+        owners: list[str] | None = None,
+        states: list[str] | None = None,
+        trashed: bool | None = False,
     ) -> Generator[LeaderboardEntry, None, None]:
         default_step_size = step_size or int(os.getenv(NEPTUNE_FETCH_TABLE_STEP_SIZE, "100"))
 
@@ -1173,7 +1178,7 @@ class HostedNeptuneBackend(NeptuneBackend):
 
         if sort_by == "sys/creation_time":
             sort_by_column_type = AttributeType.DATETIME.value
-        if sort_by == "sys/id":
+        elif sort_by == "sys/id":
             sort_by_column_type = AttributeType.STRING.value
         else:
             sort_by_column_type_candidates = self._get_column_types(project_id, sort_by, types_filter)
@@ -1187,11 +1192,16 @@ class HostedNeptuneBackend(NeptuneBackend):
                 attributes_filter=attributes_filter,
                 step_size=step_size,
                 limit=limit,
+                offset=offset,
                 sort_by=sort_by,
                 ascending=ascending,
                 sort_by_column_type=sort_by_column_type,
                 progress_bar=progress_bar,
                 tags=tags,
+                run_ids=run_ids,
+                owners=owners,
+                states=states,
+                trashed=trashed,
             )
         except HTTPNotFound:
             raise ProjectNotFound(project_id)

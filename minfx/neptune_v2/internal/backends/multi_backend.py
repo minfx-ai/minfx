@@ -1173,10 +1173,15 @@ class MultiBackend(NeptuneBackend):
         types=None,
         columns=None,
         limit=None,
+        offset=0,
         sort_by="sys/creation_time",
         ascending=False,
         progress_bar=None,
         tags=None,
+        run_ids=None,
+        owners=None,
+        states=None,
+        trashed=False,
     ):
         self._check_not_closed()
         backends_to_try = self._get_routable_backends()
@@ -1188,10 +1193,15 @@ class MultiBackend(NeptuneBackend):
                     types=types,
                     columns=columns,
                     limit=limit,
+                    offset=offset,
                     sort_by=sort_by,
                     ascending=ascending,
                     progress_bar=progress_bar,
                     tags=tags,
+                    run_ids=run_ids,
+                    owners=owners,
+                    states=states,
+                    trashed=trashed,
                 )
                 self._transition_on_success(state.index)
                 return result
