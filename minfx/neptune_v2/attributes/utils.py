@@ -58,6 +58,8 @@ _attribute_type_to_attr_class_map = {
     AttributeType.FLOAT_SERIES: FloatSeries,
     AttributeType.STRING_SERIES: StringSeries,
     AttributeType.IMAGE_SERIES: FileSeries,
+    AttributeType.HTML_SERIES: FileSeries,
+    AttributeType.FILE_SERIES: FileSeries,
     AttributeType.STRING_SET: StringSet,
     AttributeType.GIT_REF: GitRef,
     AttributeType.EXPERIMENT_STATE: ExperimentState,

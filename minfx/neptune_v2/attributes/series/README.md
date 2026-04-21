@@ -22,6 +22,7 @@ Series attributes support:
 - Fetching historical values
 - Automatic batching and buffering
 - Step-based and time-based indexing
+- FileSeries download routing across image/html/generic file backends
 
 ## Usage
 

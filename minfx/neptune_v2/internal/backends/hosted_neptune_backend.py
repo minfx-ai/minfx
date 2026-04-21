@@ -40,6 +40,7 @@ from bravado.exception import (
     HTTPPaymentRequired,
     HTTPUnprocessableEntity,
 )
+from requests import Request
 
 from minfx.neptune_v2.api.dtos import FileEntry
 from minfx.neptune_v2.api.searching_entries import iter_over_pages
@@ -107,6 +108,7 @@ from minfx.neptune_v2.internal.backends.hosted_client import (
     create_leaderboard_client,
 )
 from minfx.neptune_v2.internal.backends.hosted_file_operations import (
+    download_file_series_element_by_url,
     download_file_attribute,
     download_file_set_attribute,
     download_image_series_element,
@@ -121,6 +123,7 @@ from minfx.neptune_v2.internal.backends.utils import (
     ExecuteOperationsBatchingManager,
     MissingApiClient,
     build_operation_url,
+    handle_server_raw_response_messages,
     ssl_verify,
 )
 from minfx.neptune_v2.internal.container_type import ContainerType
@@ -814,19 +817,29 @@ class HostedNeptuneBackend(NeptuneBackend):
         destination: str,
         progress_bar: ProgressBarType | None,
     ):
-        try:
+        attribute = path_to_str(path)
+        relative_url = self._resolve_series_item_relative_url(container_id, attribute, index)
+        if relative_url is None:
+            raise FetchAttributeNotFoundException(attribute)
+
+        if relative_url.startswith("/api/leaderboard/v1/images/"):
+            # Image series has a dedicated by-index endpoint.
             download_image_series_element(
                 swagger_client=self.leaderboard_client,
                 container_id=container_id,
-                attribute=path_to_str(path),
+                attribute=attribute,
                 index=index,
                 destination=destination,
                 progress_bar=progress_bar,
             )
-        except ClientHttpError as e:
-            if e.status == HTTPNotFound.status_code:
-                raise FetchAttributeNotFoundException(path_to_str(path))
-            raise
+            return
+
+        download_file_series_element_by_url(
+            swagger_client=self.leaderboard_client,
+            relative_url=relative_url,
+            destination=destination,
+            progress_bar=progress_bar,
+        )
 
     def download_file(
         self,
@@ -1039,18 +1052,100 @@ class HostedNeptuneBackend(NeptuneBackend):
         offset: int,
         limit: int,
     ) -> ImageSeriesValues:
+        attribute = path_to_str(path)
+        fallback_total_count: int | None = None
+        for fetch_method_name in ("getFileSeriesValues", "getHtmlSeriesValues", "getImageSeriesValues"):
+            result = self._try_fetch_series_values(
+                fetch_method_name=fetch_method_name,
+                container_id=container_id,
+                attribute=attribute,
+                offset=offset,
+                limit=limit,
+            )
+            if result is not None:
+                total_count = self._extract_total_item_count(result)
+                if total_count > 0:
+                    return ImageSeriesValues(total_count)
+                if fallback_total_count is None:
+                    fallback_total_count = total_count
+
+        if fallback_total_count is not None:
+            return ImageSeriesValues(fallback_total_count)
+
+        raise FetchAttributeNotFoundException(attribute)
+
+    def _try_fetch_series_values(
+        self,
+        fetch_method_name: str,
+        container_id: str,
+        attribute: str,
+        offset: int,
+        limit: int,
+    ) -> object | None:
         params = {
             "experimentId": container_id,
-            "attribute": path_to_str(path),
+            "attribute": attribute,
             "limit": limit,
             "offset": offset,
             **DEFAULT_REQUEST_KWARGS,
         }
-        try:
-            result = self.leaderboard_client.api.getImageSeriesValues(**params).response().result
-            return ImageSeriesValues(result.totalItemCount)
-        except HTTPNotFound:
-            raise FetchAttributeNotFoundException(path_to_str(path))
+        fetch_method = getattr(self.leaderboard_client.api, fetch_method_name, None)
+        if fetch_method is not None:
+            try:
+                return fetch_method(**params).response().result
+            except HTTPNotFound:
+                return None
+
+        # Compatibility path: minfx backend exposes file/html series endpoints,
+        # but legacy swagger may not include generated methods for them.
+        fallback_path_by_method = {
+            "getFileSeriesValues": "/api/leaderboard/v1/attributes/series/file",
+            "getHtmlSeriesValues": "/api/leaderboard/v1/attributes/series/html",
+        }
+        fallback_path = fallback_path_by_method.get(fetch_method_name)
+        if fallback_path is None:
+            return None
+
+        url = build_operation_url(self.leaderboard_client.swagger_spec.api_url, fallback_path)
+        session = self._http_client.session
+        request = self._http_client.authenticator.apply(Request(method="GET", url=url, params=params))
+        response = handle_server_raw_response_messages(session.send(session.prepare_request(request)))
+        if response.status_code == HTTPNotFound.status_code:
+            return None
+        response.raise_for_status()
+        return response.json()
+
+    def _resolve_series_item_relative_url(self, container_id: str, attribute: str, index: int) -> str | None:
+        for fetch_method_name in ("getFileSeriesValues", "getHtmlSeriesValues", "getImageSeriesValues"):
+            series_values = self._try_fetch_series_values(fetch_method_name, container_id, attribute, index, 1)
+            if series_values is None:
+                continue
+
+            series_item_relative_url = self._extract_first_series_item_url(series_values)
+            if series_item_relative_url:
+                return series_item_relative_url
+        return None
+
+    @staticmethod
+    def _extract_total_item_count(series_values: object) -> int:
+        if isinstance(series_values, dict):
+            total_count = series_values.get("totalItemCount", 0)
+        else:
+            total_count = getattr(series_values, "totalItemCount", 0)
+        return int(total_count or 0)
+
+    @staticmethod
+    def _extract_first_series_item_url(series_values: object) -> str | None:
+        if isinstance(series_values, dict):
+            values = series_values.get("values")
+        else:
+            values = getattr(series_values, "values", None)
+        if not values:
+            return None
+        value = values[0]
+        if isinstance(value, dict):
+            return value.get("fileUrl") or value.get("htmlUrl") or value.get("imageUrl")
+        return getattr(value, "fileUrl", None) or getattr(value, "htmlUrl", None) or getattr(value, "imageUrl", None)
 
     @with_api_exceptions_handler
     def get_string_series_values(

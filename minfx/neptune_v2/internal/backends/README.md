@@ -26,6 +26,7 @@ This module provides:
 - API communication with Neptune services
 - Operation serialization and transmission
 - File and artifact upload/download
+- File-series compatible downloads for image/html/generic file series values
 - Project and experiment management
 
 ## Special Float Encoding
@@ -53,4 +54,4 @@ This module is used internally by the Neptune client to communicate with backend
 See `../README.md` for information about internal Neptune components.
 
 ---
-aa2213209 2026-04-10T12:39:52
+117f4b6e7 2026-04-21T14:32:49

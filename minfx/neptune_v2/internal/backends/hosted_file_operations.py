@@ -16,6 +16,7 @@
 from __future__ import annotations
 
 __all__ = [
+    "download_file_series_element_by_url",
     "download_file_set_attribute",
     "get_unique_upload_entries",
     "upload_file_attribute",
@@ -595,6 +596,22 @@ def download_file_set_attribute(
         http_client=swagger_client.swagger_spec.http_client,
         url=download_url,
         headers={"Accept": "application/zip"},
+    )
+    _store_response_as_file(response, destination, progress_bar)
+
+
+def download_file_series_element_by_url(
+    swagger_client: SwaggerClientWrapper,
+    relative_url: str,
+    destination: str,
+    progress_bar: ProgressBarType | None,
+) -> None:
+    """Download a file/html series element from a backend-provided URL."""
+    url = build_operation_url(swagger_client.swagger_spec.api_url, relative_url)
+    response = _download_raw_data(
+        http_client=swagger_client.swagger_spec.http_client,
+        url=url,
+        headers={},
     )
     _store_response_as_file(response, destination, progress_bar)
 

@@ -208,6 +208,8 @@ class AttributeType(Enum):
     FLOAT_SERIES = "floatSeries"
     STRING_SERIES = "stringSeries"
     IMAGE_SERIES = "imageSeries"
+    HTML_SERIES = "htmlSeries"
+    FILE_SERIES = "fileSeries"
     STRING_SET = "stringSet"
     GIT_REF = "gitRef"
     EXPERIMENT_STATE = "experimentState"
