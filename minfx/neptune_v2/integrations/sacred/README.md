@@ -1,33 +1,33 @@
-# Sacred Integration
+# sacred
 
-This module provides integration with the Sacred experiment management framework.
+Integration with the Sacred experiment management framework.
 
 ## Purpose
 
-The Sacred integration enables tracking of Sacred experiments, including configurations, metrics, and artifacts.
+This module provides integration with the Sacred experiment management
+framework.
+The Sacred integration enables tracking of Sacred experiments.
+It includes configurations, metrics, and artifacts.
+[`require_installed`] verifies the [`neptune-sacred`] package before import.
+The module re-exports observers and helpers from [`neptune_sacred::impl`].
 
-## Installation
+## Subdirectories / Files
 
-This integration requires the `neptune-sacred` package:
-```bash
-pip install neptune-sacred
-```
+- `./__init__.py` - Entrypoint; re-exports [`neptune_sacred::impl`].
 
-## Functionality
+## Usages
 
-The Sacred integration provides:
-- Automatic logging of Sacred configurations
-- Metric and artifact tracking
-- Observer integration with Sacred experiments
-- Configuration versioning
+- Install [`neptune-sacred`] with pip install neptune-sacred.
+- The integration is automatically available when [`neptune-sacred`] is
+  installed.
+- Use Sacred observers through this module to track experiments.
+- See [`../README.md`] for information about Neptune integrations.
 
-## Usage
 
-The integration is automatically available when the `neptune-sacred` package is installed. Use Sacred observers through this module to track experiments.
-
-## Parent Module
-
-See `../README.md` for information about Neptune integrations.
+[`require_installed`]: ../../../internal/utils/requirement_check.py
+[`neptune-sacred`]: neptune_sacred
+[`neptune_sacred::impl`]: neptune_sacred.impl
+[`../README.md`]: ../README.md
 
 ---
-7dcfce5a 2026-01-18T14:43:38
+2026-08-07T13:46:32

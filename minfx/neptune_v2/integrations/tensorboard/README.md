@@ -1,33 +1,31 @@
-# TensorBoard Integration
+# tensorboard
 
-This module provides integration with TensorBoard visualization toolkit.
+Integration with the TensorBoard visualization toolkit for Neptune
+experiment tracking.
 
 ## Purpose
 
-The TensorBoard integration enables importing TensorBoard logs into Neptune, allowing unified tracking across different experiment tracking tools.
+This module provides integration with the TensorBoard visualization toolkit.
+The TensorBoard integration enables importing TensorBoard logs into Neptune,
+allowing unified tracking across different experiment tracking tools.
+This integration requires the [`neptune-tensorboard`] package for log import,
+scalar and histogram conversion, event file parsing, and unified visualization.
 
-## Installation
+## Subdirectories / Files
 
-This integration requires the `neptune-tensorboard` package:
-```bash
-pip install neptune-tensorboard
-```
+- `./__init__.py` - Loads [`neptune-tensorboard`] when installed.
 
-## Functionality
+## Usages
 
-The TensorBoard integration provides:
-- TensorBoard log import
-- Scalar, histogram, and image data conversion
-- Event file parsing
-- Unified visualization in Neptune
+- Install [`neptune-tensorboard`] with pip before importing this module.
+- The integration is automatically available when [`neptune-tensorboard`] is
+  installed.
+- Import TensorBoard logs through this module's utilities.
+- See [`../README.md`] for information about Neptune integrations.
 
-## Usage
 
-The integration is automatically available when the `neptune-tensorboard` package is installed. Import TensorBoard logs through this module's utilities.
-
-## Parent Module
-
-See `../README.md` for information about Neptune integrations.
+[`neptune-tensorboard`]: https://pypi.org/project/neptune-tensorboard/
+[`../README.md`]: ../README.md
 
 ---
-7dcfce5a 2026-01-18T14:43:38
+2026-08-07T13:46:32

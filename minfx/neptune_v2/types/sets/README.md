@@ -1,31 +1,37 @@
-# Set Value Types
+# sets
 
-This module provides value type classes for set attributes.
+Set value types for Neptune attributes.
 
 ## Purpose
 
-The set value types module defines the data classes representing different types of set values that can be stored in Neptune.
+This module defines value type classes for set attributes in Neptune.
+Sets represent collections of unique values stored in attributes.
+[`Set`] is the abstract base class extending [`Value`] with the visitor
+pattern.
+[`StringSet`] stores unique string values and implements set operations for
+backend serialization.
 
-## Key Components
+## Subdirectories / Files
 
-- `Set`: Base class for all set value types
-- `StringSet`: String set value type
+- `./__init__.py` - Public exports for [`StringSet`].
+- `./set.py` - [`Set`] base class for all set value types.
+- `./string_set.py` - [`StringSet`] for unique string value collections.
 
-## Functionality
+## Usages
 
-These value types:
-- Represent collections of unique values
-- Support set operations (add, remove)
-- Provide type-safe containers
-- Enable serialization for backend storage
+- Internal Neptune code uses these types to represent set attribute values.
+- [`StringSet`] accepts an iterable of strings and deduplicates them on init.
+- The visitor pattern in [`Set::accept()`] dispatches type-specific handling.
+- Users typically interact with sets through attribute APIs rather than these
+  classes directly.
+- See [`../README.md`] for the parent types module overview.
 
-## Usage
 
-These types are used internally to represent values stored in set attributes. Users typically don't interact with these classes directly but use them implicitly through set operations.
-
-## Parent Module
-
-See `../README.md` for information about Neptune types.
+[`Set`]: set.Set
+[`StringSet`]: string_set.StringSet
+[`Value`]: ../value.py
+[`Set::accept()`]: set.Set.accept
+[`../README.md`]: ../README.md
 
 ---
-7dcfce5a 2026-01-18T14:43:38
+2026-08-07T13:46:32

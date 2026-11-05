@@ -191,6 +191,7 @@ class HostedNeptuneBackend(NeptuneBackend):
             credentials=credentials,
             ssl_verify=ssl_verify(),
             proxies=proxies,
+            project_name=project_name_override,
             backend_index=backend_index,
         )
         self._http_client: RequestsClient = http_client
@@ -209,7 +210,7 @@ class HostedNeptuneBackend(NeptuneBackend):
         self.sys_name_set_by_backend = self._client_config.sys_name_set_by_backend
 
         # Container workspace mapping for minfx org lookup optimization
-        self._container_workspaces: dict[str, str] = {}  # container_id → workspace
+        self._container_workspaces: dict[str, str] = {}  # container_id -> workspace
 
     def set_container_workspace(self, container_id: str, workspace: str) -> None:
         """Store workspace for a container (used for minfx org lookup optimization)."""
@@ -822,7 +823,7 @@ class HostedNeptuneBackend(NeptuneBackend):
         if relative_url is None:
             raise FetchAttributeNotFoundException(attribute)
 
-        if relative_url.startswith("/api/leaderboard/v1/images/"):
+        if relative_url.startswith("/api/v1/leaderboard/images/"):
             # Image series has a dedicated by-index endpoint.
             download_image_series_element(
                 swagger_client=self.leaderboard_client,
@@ -1099,8 +1100,8 @@ class HostedNeptuneBackend(NeptuneBackend):
         # Compatibility path: minfx backend exposes file/html series endpoints,
         # but legacy swagger may not include generated methods for them.
         fallback_path_by_method = {
-            "getFileSeriesValues": "/api/leaderboard/v1/attributes/series/file",
-            "getHtmlSeriesValues": "/api/leaderboard/v1/attributes/series/html",
+            "getFileSeriesValues": "/api/v1/leaderboard/attributes/series/file",
+            "getHtmlSeriesValues": "/api/v1/leaderboard/attributes/series/html",
         }
         fallback_path = fallback_path_by_method.get(fetch_method_name)
         if fallback_path is None:
@@ -1233,20 +1234,6 @@ class HostedNeptuneBackend(NeptuneBackend):
             raise FetchAttributeNotFoundException(path_to_str(path))
 
     @with_api_exceptions_handler
-    def _get_column_types(self, project_id: UniqueId, column: str, types: Iterable[str] | None = None) -> list[Any]:
-        params = {
-            "projectIdentifier": project_id,
-            "search": column,
-            "type": types,
-            "params": {},
-            **DEFAULT_REQUEST_KWARGS,
-        }
-        try:
-            return self.leaderboard_client.api.searchLeaderboardAttributes(**params).response().result.entries
-        except HTTPNotFound as e:
-            raise ProjectNotFound(project_id=project_id) from e
-
-    @with_api_exceptions_handler
     def search_leaderboard_entries(
         self,
         project_id: UniqueId,
@@ -1276,8 +1263,7 @@ class HostedNeptuneBackend(NeptuneBackend):
         elif sort_by == "sys/id":
             sort_by_column_type = AttributeType.STRING.value
         else:
-            sort_by_column_type_candidates = self._get_column_types(project_id, sort_by, types_filter)
-            sort_by_column_type = _get_column_type_from_entries(sort_by_column_type_candidates, sort_by)
+            sort_by_column_type = AttributeType.STRING.value
 
         try:
             return iter_over_pages(
@@ -1324,8 +1310,8 @@ class HostedNeptuneBackend(NeptuneBackend):
 
         Detects flavor from API URL:
         - If URL contains 'demo.' (e.g., demo.neptune2.minfx.ai or demo.neptune2.localhost)
-          → use demo frontend URL
-        - Otherwise → use app frontend URL
+          -> use demo frontend URL
+        - Otherwise -> use app frontend URL
 
         Also handles local development URLs with ports.
         """

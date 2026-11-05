@@ -1,55 +1,69 @@
-# Atom Attributes
+# atoms
 
-This module provides atomic (single-value) attribute types for Neptune experiments.
+Atomic (single-value) attribute types for Neptune experiments.
 
 ## Purpose
 
-Atoms represent single-value attributes that can be assigned and retrieved. Unlike series, atoms hold a single value at a time rather than a sequence of values.
+This module provides atomic (single-value) attribute types for Neptune
+experiments.
+Atoms represent single-value attributes that can be assigned and retrieved.
+Unlike series, atoms hold a single value at a time rather than a sequence of
+values.
+[`Atom`] is the base class for all atomic attributes.
+[`CopiableAtom`] extends [`Atom`] for atoms that support copying.
+Typed atoms include [`Boolean`], [`Integer`], [`Float`], [`String`], and
+[`Datetime`].
+Reference atoms include [`File`], [`Artifact`], [`GitRef`], and
+[`NotebookRef`].
+[`ExperimentState`] tracks experiment run state.
+Atom attributes support assignment, retrieval, type-specific validation, and
+serialization for backend storage.
+The [`Float`] attribute supports IEEE 754 special values including
+[`float("nan")`], [`float("inf")`], and [`float("-inf")`].
+These special values are encoded as strings during JSON serialization.
 
-## Key Components
+## Subdirectories / Files
 
-- `Atom`: Base class for all atomic attributes
-- `Boolean`: Boolean value attribute
-- `Integer`: Integer value attribute
-- `Float`: Floating-point value attribute
-- `String`: String value attribute
-- `Datetime`: Datetime value attribute
-- `File`: File attachment attribute
-- `Artifact`: Artifact reference attribute
-- `GitRef`: Git reference attribute
-- `NotebookRef`: Jupyter notebook reference attribute
-- `ExperimentState`: Experiment run state attribute
-- `CopiableAtom`: Base class for atoms that support copying
+- `./__init__.py` - Public exports for atom attribute types.
+- `./artifact.py` - [`Artifact`] artifact reference attribute.
+- `./atom.py` - [`Atom`] base class for atomic attributes.
+- `./boolean.py` - [`Boolean`] boolean value attribute.
+- `./copiable_atom.py` - [`CopiableAtom`] base for copyable atoms.
+- `./datetime.py` - [`Datetime`] datetime value attribute.
+- `./experiment_state.py` - [`ExperimentState`] experiment run state
+  attribute.
+- `./file.py` - [`File`] file attachment attribute.
+- `./float.py` - [`Float`] floating-point attribute with IEEE 754 specials.
+- `./git_ref.py` - [`GitRef`] git reference attribute.
+- `./integer.py` - [`Integer`] integer value attribute.
+- `./notebook_ref.py` - [`NotebookRef`] Jupyter notebook reference attribute.
+- `./string.py` - [`String`] string value attribute.
 
-## Functionality
+## Usages
 
-Atom attributes support:
-- Assignment of single values
-- Retrieval of current value
-- Type-specific validation
-- Serialization for backend storage
+- Atoms store metadata and single-value parameters on Neptune runs.
+- Assign a [`Float`] atom with run["parameters/learning_rate"] = 0.001.
+- Assign a [`String`] atom with run["model/name"] = "ResNet50".
+- Assign a [`Boolean`] atom with run["config/use_augmentation"] = True.
+- See [`../README.md`] for the parent attributes module overview.
 
-## Special Float Values
 
-The `Float` attribute supports IEEE 754 special values:
-- `float("nan")` - NaN values
-- `float("inf")` - Positive infinity
-- `float("-inf")` - Negative infinity
-
-These are encoded as strings during JSON serialization.
-
-## Usage
-
-Atoms are used to store metadata and single-value parameters:
-```python
-run["parameters/learning_rate"] = 0.001  # Float atom
-run["model/name"] = "ResNet50"  # String atom
-run["config/use_augmentation"] = True  # Boolean atom
-```
-
-## Parent Module
-
-See `../README.md` for information about the attributes system.
+[`Atom`]: atom.Atom
+[`Boolean`]: boolean.Boolean
+[`Integer`]: integer.Integer
+[`Float`]: float.Float
+[`String`]: string.String
+[`Datetime`]: datetime.Datetime
+[`File`]: file.File
+[`Artifact`]: artifact.Artifact
+[`GitRef`]: git_ref.GitRef
+[`NotebookRef`]: notebook_ref.NotebookRef
+[`ExperimentState`]: experiment_state.ExperimentState
+[`CopiableAtom`]: copiable_atom.CopiableAtom
+[`float("nan")`]: float.py
+[`float("inf")`]: float.py
+[`float("-inf")`]: float.py
+[`../README.md`]: ../README.md
 
 ---
-1cf19d5d 2026-03-11T13:37:57
+2026-08-07T13:46:32

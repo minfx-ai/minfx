@@ -1,33 +1,33 @@
-# Pandas Integration
+# pandas
 
-This module provides integration with the Pandas data analysis library.
+Integration with the Pandas data analysis library for Neptune experiment
+tracking.
 
 ## Purpose
 
-The Pandas integration enables logging of Pandas DataFrames and Series as Neptune artifacts, facilitating data tracking and versioning.
+This module provides integration with the Pandas data analysis library.
+The Pandas integration enables logging of Pandas DataFrames and Series as
+Neptune artifacts, facilitating data tracking and versioning.
+This integration requires the [`neptune-pandas`] package for DataFrame
+logging, CSV and other format support, data profiling, and DataFrame
+comparison utilities.
 
-## Installation
+## Subdirectories / Files
 
-This integration requires the `neptune-pandas` package:
-```bash
-pip install neptune-pandas
-```
+- `./__init__.py` - Package entry with [`to_pandas`] for Table conversion.
 
-## Functionality
+## Usages
 
-The Pandas integration provides:
-- DataFrame logging and versioning
-- CSV and other format support
-- Data profiling and statistics
-- DataFrame comparison utilities
+- Install [`neptune-pandas`] with pip before importing this module.
+- The integration is automatically available when [`neptune-pandas`] is
+  installed.
+- Log DataFrames through this module's utilities.
+- See [`../README.md`] for information about Neptune integrations.
 
-## Usage
 
-The integration is automatically available when the `neptune-pandas` package is installed. Log DataFrames through this module's utilities.
-
-## Parent Module
-
-See `../README.md` for information about Neptune integrations.
+[`neptune-pandas`]: https://pypi.org/project/neptune-pandas/
+[`to_pandas`]: __init__.py
+[`../README.md`]: ../README.md
 
 ---
-1cf19d5d 2026-03-11T13:37:57
+2026-08-07T13:46:32

@@ -489,7 +489,7 @@ class Handler(SupportsNamespaces):
         Args:
             values (str or collection of str): Tag or tags to be added.
                 .. note::
-                    You can use emojis in your tags. For example, "Exploration 🧪"
+                    You can use emojis in your tags.
             wait (bool, optional): If `True`, the client will wait to send all tracked metadata to the server first.
                 This makes the call synchronous.
                 Defaults to `False`.

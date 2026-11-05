@@ -1,33 +1,31 @@
-# Kedro Integration
+# kedro
 
-This module provides integration with the Kedro data pipeline framework.
+Integration with the Kedro data pipeline framework for Neptune tracking.
 
 ## Purpose
 
-The Kedro integration enables tracking of Kedro pipeline runs, including datasets, parameters, and pipeline metrics.
+This module provides Kedro integration for Neptune experiment tracking.
+The integration enables tracking of Kedro pipeline runs.
+It logs datasets, parameters, and pipeline metrics.
+The package entry re-exports symbols from [`kedro_neptune`] after verifying
+the optional dependency is installed.
 
-## Installation
+## Subdirectories / Files
 
-This integration requires the `neptune-kedro` package:
-```bash
-pip install neptune-kedro
-```
+- `./__init__.py` - Package entry that re-exports [`kedro_neptune`] symbols
+  after dependency check.
 
-## Functionality
+## Usages
 
-The Kedro integration provides:
-- Automatic logging of pipeline parameters
-- Dataset tracking
-- Pipeline execution metrics
-- Node-level performance monitoring
+- Install [`neptune-kedro`] to enable Kedro tracking with Neptune.
+- Import from this module to access Kedro Neptune hooks and callbacks.
+- Configure Kedro hooks through this module to enable Neptune tracking.
+- See [`../README.md`] for the parent integrations module overview.
 
-## Usage
 
-The integration is automatically available when the `neptune-kedro` package is installed. Configure Kedro hooks through this module to enable Neptune tracking.
-
-## Parent Module
-
-See `../README.md` for information about Neptune integrations.
+[`neptune-kedro`]: https://pypi.org/project/neptune-kedro/
+[`kedro_neptune`]: kedro_neptune
+[`../README.md`]: ../README.md
 
 ---
-7dcfce5a 2026-01-18T14:43:38
+2026-08-07T13:46:32

@@ -26,6 +26,7 @@ __all__ = [
     "validate_backends_unique",
 ]
 
+import json
 import os
 from dataclasses import dataclass
 
@@ -57,8 +58,7 @@ def parse_api_tokens(api_token: str | None) -> list[str]:
 
     If api_token is None, reads from the NEPTUNE_API_TOKEN environment variable.
 
-    Note: API tokens are base64-encoded JSON, which uses only A-Za-z0-9+/= characters.
-    Commas are NOT valid base64 characters, so comma separation is safe.
+    Raw JSON objects may contain commas and can be mixed with encoded tokens.
 
     Args:
         api_token: Comma-separated API tokens or None to read from env.
@@ -75,8 +75,28 @@ def parse_api_tokens(api_token: str | None) -> list[str]:
     if api_token is None:
         raise NeptuneMissingApiTokenException()
 
-    tokens = [t.strip() for t in api_token.split(",")]
-    return [t for t in tokens if t]  # Filter empty strings
+    tokens = []
+    remaining = api_token.strip()
+    decoder = json.JSONDecoder()
+    while remaining:
+        if remaining.startswith("{"):
+            try:
+                _, end = decoder.raw_decode(remaining)
+            except ValueError:
+                tokens.append(remaining)
+                break
+            tokens.append(remaining[:end])
+            remaining = remaining[end:].lstrip()
+            if remaining and not remaining.startswith(","):
+                tokens[-1] += remaining
+                break
+            remaining = remaining[1:].lstrip()
+        else:
+            token, _, remaining = remaining.partition(",")
+            if token.strip():
+                tokens.append(token.strip())
+            remaining = remaining.lstrip()
+    return tokens
 
 
 def configs_from_tokens(

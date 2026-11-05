@@ -1,33 +1,32 @@
-# Optuna Integration
+# optuna
 
-This module provides integration with the Optuna hyperparameter optimization framework.
+Integration with the Optuna hyperparameter optimization framework for Neptune
+experiment tracking.
 
 ## Purpose
 
-The Optuna integration enables tracking of hyperparameter optimization studies, including trial parameters, metrics, and optimization history.
+This module provides integration with the Optuna hyperparameter optimization
+framework.
+The Optuna integration enables tracking of hyperparameter optimization studies,
+including trial parameters, metrics, and optimization history.
+This integration requires the [`neptune-optuna`] package for trial logging,
+optimization history tracking, and parameter importance visualization.
 
-## Installation
+## Subdirectories / Files
 
-This integration requires the `neptune-optuna` package:
-```bash
-pip install neptune-optuna
-```
+- `./__init__.py` - Package entry that loads [`neptune-optuna`] when installed.
 
-## Functionality
+## Usages
 
-The Optuna integration provides:
-- Automatic logging of trial parameters and results
-- Optimization history tracking
-- Visualization of parameter importance
-- Study-level and trial-level tracking
+- Install [`neptune-optuna`] with pip before importing this module.
+- The integration is automatically available when [`neptune-optuna`] is
+  installed.
+- Use Optuna callbacks through this module to track optimization studies.
+- See [`../README.md`] for information about Neptune integrations.
 
-## Usage
 
-The integration is automatically available when the `neptune-optuna` package is installed. Use Optuna callbacks through this module to track optimization studies.
-
-## Parent Module
-
-See `../README.md` for information about Neptune integrations.
+[`neptune-optuna`]: https://pypi.org/project/neptune-optuna/
+[`../README.md`]: ../README.md
 
 ---
-7dcfce5a 2026-01-18T14:43:38
+2026-08-07T13:46:32

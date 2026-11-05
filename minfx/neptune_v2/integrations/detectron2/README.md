@@ -1,33 +1,37 @@
-# Detectron2 Integration
+# detectron2
 
-This module provides integration with Facebook's Detectron2 object detection framework.
+Detectron2 object detection framework integration for Neptune experiment
+tracking.
 
 ## Purpose
 
-The Detectron2 integration enables automatic logging of Detectron2 training runs, including model configurations, metrics, and outputs.
+This module provides integration with Facebook's Detectron2 object detection
+framework.
+The Detectron2 integration enables automatic logging of Detectron2 training
+runs, including model configurations, metrics, and outputs.
+It requires the [`neptune-detectron2`] package for callbacks, loggers, and
+Detectron2-specific tracking utilities.
+The integration supports training metric logging, model configuration
+tracking, checkpoint management, and detection result visualization.
 
-## Installation
+## Subdirectories / Files
 
-This integration requires the `neptune-detectron2` package:
-```bash
-pip install neptune-detectron2
-```
+- `./__init__.py` - Package entry that requires [`neptune_detectron2`] and
+  re-exports its implementation API.
 
-## Functionality
+## Usages
 
-The Detectron2 integration provides:
-- Automatic logging of training metrics
-- Model configuration tracking
-- Checkpoint management
-- Visualization of detection results
+- Install the integration with pip install neptune-detectron2.
+- The integration is automatically available when the [`neptune-detectron2`]
+  package is installed.
+- Use Detectron2-specific callbacks and loggers through this module to log
+  training metrics, configurations, checkpoints, and visualizations.
+- See [`../README.md`] for information about Neptune integrations.
 
-## Usage
 
-The integration is automatically available when the `neptune-detectron2` package is installed. Use Detectron2-specific callbacks and loggers through this module.
-
-## Parent Module
-
-See `../README.md` for information about Neptune integrations.
+[`neptune-detectron2`]: neptune_detectron2
+[`neptune_detectron2`]: neptune_detectron2
+[`../README.md`]: ../README.md
 
 ---
-7dcfce5a 2026-01-18T14:43:38
+2026-08-07T13:46:32

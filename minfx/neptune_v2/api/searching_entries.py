@@ -23,8 +23,7 @@ from typing import (
     Iterable,
 )
 
-from bravado.client import construct_request  # type: ignore[import-untyped]
-from bravado.config import RequestConfig  # type: ignore[import-untyped]
+from requests import Request
 
 from typing_extensions import (
     Literal,
@@ -37,7 +36,11 @@ from minfx.neptune_v2.internal.backends.api_model import (
     LeaderboardEntry,
 )
 from minfx.neptune_v2.internal.backends.hosted_client import DEFAULT_REQUEST_KWARGS
-from minfx.neptune_v2.internal.backends.utils import construct_progress_bar
+from minfx.neptune_v2.internal.backends.utils import (
+    build_operation_url,
+    construct_progress_bar,
+    handle_server_raw_response_messages,
+)
 from minfx.neptune_v2.internal.init.parameters import MAX_SERVER_OFFSET
 
 if TYPE_CHECKING:
@@ -47,6 +50,7 @@ if TYPE_CHECKING:
 
 
 SUPPORTED_ATTRIBUTE_TYPES = {item.value for item in AttributeType}
+SEARCH_ENTRIES_PATH = "/api/v1/leaderboard/entries/search"
 
 SORT_BY_COLUMN_TYPE: TypeAlias = Literal["string", "datetime", "integer", "boolean", "float"]
 
@@ -142,29 +146,40 @@ def get_single_page(
         },
     }
 
-    request_options = DEFAULT_REQUEST_KWARGS.get("_request_options", {})
-    request_config = RequestConfig(request_options, True)
-    request_params = construct_request(client.api.searchLeaderboardEntries, request_options, **params)
-
     http_client = client.swagger_spec.http_client
-
-    return (
-        http_client.request(request_params, operation=None, request_config=request_config)
-        .response()
-        .incoming_response.json()
+    url = build_operation_url(client.swagger_spec.api_url, SEARCH_ENTRIES_PATH)
+    query_params = {"projectIdentifier": params["projectIdentifier"]}
+    if params["type"] is not None:
+        query_params["type"] = params["type"]
+    request_options = DEFAULT_REQUEST_KWARGS.get("_request_options", {})
+    connect_timeout = request_options.get("connect_timeout")
+    total_timeout = request_options.get("timeout")
+    timeout = (connect_timeout, total_timeout) if connect_timeout is not None else total_timeout
+    request = Request(
+        method="POST",
+        url=url,
+        params=query_params,
+        json=params["params"],
+        headers=request_options.get("headers"),
     )
+    prepared_request = http_client.session.prepare_request(http_client.authenticator.apply(request))
+    response = handle_server_raw_response_messages(
+        http_client.session.send(
+            prepared_request,
+            timeout=timeout,
+        )
+    )
+    response.raise_for_status()
+    return response.json()
 
 
 def to_leaderboard_entry(entry: dict[str, object]) -> LeaderboardEntry:
-    experiment_id = entry["experimentId"]
-    attributes_raw = entry["attributes"]
+    experiment_id = entry.get("experimentId", entry.get("id"))
+    attributes_raw = entry.get("attributes", entry.get("attrs"))
     if not isinstance(experiment_id, str):
         raise TypeError(f"Expected experimentId to be str, got {type(experiment_id)}")
-    # Handle both list format (legacy) and dict format (new: keyed by AttributeId)
-    if isinstance(attributes_raw, dict):
-        attributes_raw = list(attributes_raw.values())
-    if not isinstance(attributes_raw, list):
-        raise TypeError(f"Expected attributes to be list or dict, got {type(attributes_raw)}")
+    if not isinstance(attributes_raw, dict):
+        raise TypeError(f"Expected attributes to be dict, got {type(attributes_raw)}")
     return LeaderboardEntry(
         id=experiment_id,
         attributes=[
@@ -173,7 +188,7 @@ def to_leaderboard_entry(entry: dict[str, object]) -> LeaderboardEntry:
                 type=AttributeType(attr["type"]),  # type: ignore[index]
                 properties=attr[f"{attr['type']}Properties"],  # type: ignore[index]
             )
-            for attr in attributes_raw
+            for attr in attributes_raw.values()
             if isinstance(attr, dict) and attr.get("type") in SUPPORTED_ATTRIBUTE_TYPES
         ],
     )

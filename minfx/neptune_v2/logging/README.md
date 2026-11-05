@@ -1,37 +1,31 @@
-# Logging
+# logging
 
 This module provides Python logging integration for Neptune.
 
 ## Purpose
 
-The logging module enables integration between Python's standard logging module and Neptune, allowing automatic capture of log messages.
+The logging module enables integration between Python's standard logging
+module and Neptune.
+It supplies [`Logger`] for writing messages to Neptune string-series
+attributes on a run or project container.
 
-## Key Components
+## Subdirectories / Files
 
-- `logger.py`: Neptune logger implementation for Python's logging module
+- `./__init__.py` - Package exports for [`Logger`].
+- `./logger.py` - Neptune string-series logger for container attributes.
 
-## Functionality
+## Usages
 
-This module provides:
-- Integration with Python's logging module
-- Automatic log message capture
-- Log level filtering
-- Structured log formatting
+- [`NeptuneHandler`] in integrations attaches to Python loggers and forwards
+  records through [`Logger`].
+- Internal stream capture imports [`Logger`] to persist stdout and stderr on
+  active runs.
+- See [`../README.md`] for the parent neptune_v2 module overview.
 
-## Usage
 
-Use Neptune's logger handler to capture Python logs:
-```python
-import logging
-from minfx.neptune_v2.logging import NeptuneHandler
-
-logger = logging.getLogger()
-logger.addHandler(NeptuneHandler(run=run))
-```
-
-## Parent Module
-
-See `../README.md` for information about the Neptune v2 client.
+[`Logger`]: logger.py
+[`NeptuneHandler`]: ../integrations/python_logger.py
+[`../README.md`]: ../README.md
 
 ---
-7dcfce5a 2026-01-18T14:43:38
+2026-08-07T13:46:32

@@ -1,34 +1,36 @@
-# TensorFlow/Keras Integration
+# tensorflow_keras
 
-This module provides integration with TensorFlow and Keras deep learning frameworks.
+TensorFlow and Keras deep learning framework integration for Neptune experiment
+tracking.
 
 ## Purpose
 
-The TensorFlow/Keras integration enables automatic logging of TensorFlow and Keras training runs, including model architecture, metrics, and training progress.
+This module provides integration with the TensorFlow and Keras deep learning
+frameworks.
+The TensorFlow/Keras integration enables automatic logging of training runs.
+It logs model architecture, metrics, and training progress.
+[`require_installed`] verifies the [`neptune-tensorflow-keras`] package before
+import.
+The module re-exports callbacks and helpers from
+[`neptune_tensorflow_keras::impl`].
 
-## Installation
+## Subdirectories / Files
 
-This integration requires the `neptune-tensorflow-keras` package:
-```bash
-pip install neptune-tensorflow-keras
-```
+- `./__init__.py` - Entrypoint; re-exports [`neptune_tensorflow_keras::impl`].
 
-## Functionality
+## Usages
 
-The TensorFlow/Keras integration provides:
-- Automatic logging of training and validation metrics
-- Model architecture visualization
-- Callback integration with Keras training
-- TensorFlow graph logging
-- Model checkpoint management
+- Install [`neptune-tensorflow-keras`] with pip before importing this module.
+- The integration is automatically available when [`neptune-tensorflow-keras`]
+  is installed.
+- Use Keras callbacks through this module to enable Neptune logging.
+- See [`../README.md`] for information about Neptune integrations.
 
-## Usage
 
-The integration is automatically available when the `neptune-tensorflow-keras` package is installed. Use Keras callbacks through this module to enable Neptune logging.
-
-## Parent Module
-
-See `../README.md` for information about Neptune integrations.
+[`require_installed`]: ../../../internal/utils/requirement_check.py
+[`neptune-tensorflow-keras`]: neptune_tensorflow_keras
+[`neptune_tensorflow_keras::impl`]: neptune_tensorflow_keras.impl
+[`../README.md`]: ../README.md
 
 ---
-7dcfce5a 2026-01-18T14:43:38
+2026-08-07T13:46:32

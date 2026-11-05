@@ -1,32 +1,30 @@
-# AWS Integration
+# aws
 
-This module provides integration with Amazon Web Services (AWS).
+Integration with Amazon Web Services for Neptune experiment tracking.
 
 ## Purpose
 
-The AWS integration enables Neptune to work seamlessly with AWS services, particularly for artifact storage and cloud-based experiment tracking.
+This module provides integration with Amazon Web Services (AWS).
+The AWS integration enables Neptune to work seamlessly with AWS services.
+It supports artifact storage and cloud-based experiment tracking.
+This integration requires the [`neptune-aws`] package for S3 artifact
+storage, AWS-specific utilities, and cloud resource tracking.
 
-## Installation
+## Subdirectories / Files
 
-This integration requires the `neptune-aws` package:
-```bash
-pip install neptune-aws
-```
+- `./__init__.py` - Package entry that loads [`neptune-aws`] when installed.
 
-## Functionality
+## Usages
 
-The AWS integration provides:
-- S3 artifact storage support
-- AWS-specific utilities and helpers
-- Cloud resource tracking
+- Install [`neptune-aws`] with pip before importing this module.
+- The integration is automatically available when [`neptune-aws`] is
+  installed.
+- Import AWS-specific functionality through this module.
+- See [`../README.md`] for information about Neptune integrations.
 
-## Usage
 
-The integration is automatically available when the `neptune-aws` package is installed. Import and use AWS-specific functionality through this module.
-
-## Parent Module
-
-See `../README.md` for information about Neptune integrations.
+[`neptune-aws`]: https://pypi.org/project/neptune-aws/
+[`../README.md`]: ../README.md
 
 ---
-7dcfce5a 2026-01-18T14:43:38
+2026-08-07T13:46:32

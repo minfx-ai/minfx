@@ -1,42 +1,38 @@
-# Set Attributes
+# sets
 
-This module provides set attribute types for Neptune experiments.
+Set attribute types for Neptune experiments.
 
 ## Purpose
 
-Sets represent collections of unique values, useful for tracking tags, labels, or any other collection of distinct items.
+This module provides set attribute types for Neptune experiments.
+Sets represent collections of unique values.
+They are useful for tracking tags, labels, or any other collection of distinct
+items.
+[`Set`] is the base class for all set attributes.
+[`StringSet`] stores unique string values with add, remove, assign, clear, and
+fetch operations.
+Set attributes maintain element uniqueness and enqueue backend operations for
+synchronization.
 
-## Key Components
+## Subdirectories / Files
 
-- `Set`: Base class for all set attributes
-- `StringSet`: Set of unique string values
+- `./__init__.py` - Public exports for [`StringSet`].
+- `./set.py` - [`Set`] base class for set attributes.
+- `./string_set.py` - [`StringSet`] for unique string value collections.
 
-## Functionality
+## Usages
 
-Set attributes support:
-- Adding individual values or multiple values
-- Removing values
-- Checking membership
-- Maintaining uniqueness of elements
-- Efficient set operations
+- Sets are commonly used for tags and labels on Neptune runs.
+- Add a tag with run["sys/tags"].add("production").
+- Add multiple tags with run["sys/tags"].add(["experiment", "baseline"]).
+- Remove a tag with run["sys/tags"].remove("baseline").
+- Assign a list directly with run["sys/tags"] = ["lightning", "mnist"].
+- See [`../README.md`] for the parent attributes module overview.
 
-## Usage
 
-Sets are commonly used for tags and labels:
-```python
-run["sys/tags"].add("production")
-run["sys/tags"].add(["experiment", "baseline"])
-run["sys/tags"].remove("baseline")
-```
-
-You can also assign lists, sets, or tuples directly:
-```python
-run["sys/tags"] = ["lightning", "mnist"]
-```
-
-## Parent Module
-
-See `../README.md` for information about the attributes system.
+[`Set`]: set.Set
+[`StringSet`]: string_set.StringSet
+[`../README.md`]: ../README.md
 
 ---
-4ff6e696 2026-01-22T18:58:51
+2026-08-07T13:46:32

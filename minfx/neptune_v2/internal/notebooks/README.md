@@ -1,32 +1,39 @@
-# Internal Notebooks
+# notebooks
 
-This module provides Jupyter notebook integration functionality.
+Jupyter notebook integration for Neptune checkpoint tracking and kernel
+communication.
 
 ## Purpose
 
-The internal notebooks module handles detection and integration with Jupyter notebooks, including cell tracking and notebook metadata extraction.
+The internal notebooks module handles detection and integration with Jupyter
+notebooks.
+It tracks cell execution and extracts notebook metadata when running inside
+IPython.
+It creates backend checkpoints and notifies the Jupyter kernel when checkpoints
+are created.
 
-## Key Components
+## Subdirectories / Files
 
-- `notebooks.py`: Notebook detection and metadata extraction
-- `comm.py`: Communication with Jupyter kernel for notebook tracking
+- `./__init__.py` - Package marker with no public re-exports.
+- `./comm.py` - [`send_checkpoint_created`] and [`MessageType`] for Jupyter
+  kernel communication.
+- `./notebooks.py` - [`create_checkpoint`] for IPython notebook checkpoint
+  creation.
 
-## Functionality
+## Usages
 
-This module provides:
-- Jupyter notebook environment detection
-- Notebook ID and path extraction
-- Cell execution tracking
-- IPython kernel communication
-- Notebook checkpoint creation
+- The Neptune client uses this module when running inside Jupyter notebooks.
+- [`create_checkpoint`] creates a backend checkpoint and notifies the kernel
+  once per cell execution.
+- [`send_checkpoint_created`] publishes checkpoint metadata over the Neptune
+  IPython comm target.
+- See [`../README.md`] for the parent internal module overview.
 
-## Usage
 
-This module is used internally by the Neptune client to automatically detect when running in Jupyter notebooks and track notebook-specific metadata.
-
-## Parent Module
-
-See `../README.md` for information about internal Neptune components.
+[`create_checkpoint`]: notebooks.create_checkpoint
+[`send_checkpoint_created`]: comm.send_checkpoint_created
+[`MessageType`]: comm.MessageType
+[`../README.md`]: ../README.md
 
 ---
-7dcfce5a 2026-01-18T14:43:38
+2026-08-07T13:46:32

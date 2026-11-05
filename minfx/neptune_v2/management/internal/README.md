@@ -1,33 +1,39 @@
-# Management Internal
+# internal
 
-This module provides internal management API functionality.
+Internal management API functionality for Neptune workspaces and projects.
 
 ## Purpose
 
-The management internal module implements the internal API for Neptune management operations like project administration and workspace management.
+The management internal module implements the internal API for Neptune
+management operations.
+It covers project administration, workspace management, and related
+administrative tasks.
+[`api.py`] exposes the core management functions.
+[`dto.py`], [`types.py`], and [`utils.py`] provide supporting data types and
+helpers.
 
-## Key Components
+## Subdirectories / Files
 
-- `api.py`: Internal management API implementation
-- `dto.py`: Data transfer objects for management operations
-- `types.py`: Type definitions for management
-- `utils.py`: Management utility functions
+- `./__init__.py` - Package marker with no public re-exports.
+- `./api.py` - Internal management API for projects, workspaces, and trash.
+- `./dto.py` - Data transfer objects for management API requests and responses.
+- `./types.py` - Role and visibility type definitions for management.
+- `./utils.py` - Project and workspace name parsing and validation helpers.
 
-## Functionality
+## Usages
 
-This module provides:
-- Project management operations
-- Workspace administration
-- User and team management
-- Internal API abstractions
+- The public management API delegates administrative operations to this
+  module.
+- [`api.py`] implements create, delete, member, and service-account
+  operations for projects and workspaces.
+- See [`../../README.md`] for the parent management module overview.
 
-## Usage
 
-This module is used internally by the public management API to implement administrative operations.
-
-## Parent Module
-
-See `../../README.md` for information about the management module.
+[`api.py`]: api.py
+[`dto.py`]: dto.py
+[`types.py`]: types.py
+[`utils.py`]: utils.py
+[`../../README.md`]: ../../README.md
 
 ---
-289f9a7a 2026-03-03T12:24:43
+2026-08-27T14:54:08

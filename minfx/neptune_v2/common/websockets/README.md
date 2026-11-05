@@ -1,32 +1,39 @@
-# WebSockets
+# websockets
 
-This module provides WebSocket communication functionality with automatic reconnection.
+WebSocket communication with automatic reconnection for Neptune services.
 
 ## Purpose
 
-The websockets module implements reliable WebSocket connections with automatic reconnection and error handling for real-time communication with Neptune services.
+This module implements reliable WebSocket connections with automatic
+reconnection and error handling for real-time communication with Neptune
+services.
+[`ReconnectingWebsocket`] wraps [`WebsocketClientAdapter`] and retries
+connections with exponential backoff.
+It handles OAuth2 authentication, proxy configuration, and graceful
+shutdown.
 
-## Key Components
+## Subdirectories / Files
 
-- `ReconnectingWebsocket`: WebSocket client with automatic reconnection logic
-- `WebsocketClientAdapter`: Adapter for the underlying WebSocket client library
+- `./__init__.py` - Package marker with no public re-exports.
+- `./reconnecting_websocket.py` - [`ReconnectingWebsocket`] with reconnection
+  logic.
+- `./websocket_client_adapter.py` - [`WebsocketClientAdapter`] WebSocket
+  wrapper.
 
-## Functionality
+## Usages
 
-This module provides:
-- Automatic reconnection with exponential backoff
-- Error handling for connection failures
-- OAuth2 authentication support
-- Graceful shutdown handling
-- Proxy support
+- [`WebsocketsFactory`] creates [`ReconnectingWebsocket`] instances for the
+  internal WebSocket layer.
+- [`signals::Job`] listens for abort and stop signals via
+  [`ReconnectingWebsocket`].
+- See [`../README.md`] for the parent common utilities overview.
 
-## Usage
 
-This module is used internally by the Neptune client for real-time communication features, ensuring reliable connections even in unstable network conditions.
-
-## Parent Module
-
-See `../README.md` for information about the common utilities system.
+[`ReconnectingWebsocket`]: reconnecting_websocket.ReconnectingWebsocket
+[`WebsocketClientAdapter`]: websocket_client_adapter.WebsocketClientAdapter
+[`WebsocketsFactory`]: ../../internal/websockets/websockets_factory.py
+[`signals::Job`]: ../../internal/websockets/websocket_signals_background_job.py
+[`../README.md`]: ../README.md
 
 ---
-7dcfce5a 2026-01-18T14:43:38
+2026-08-07T13:46:32

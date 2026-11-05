@@ -1,48 +1,68 @@
-# Common
+# common
 
-This module provides common utilities and shared functionality across Neptune.
+Shared utilities and components used across the Neptune v2 client.
 
 ## Purpose
 
-The common module contains utilities, exceptions, and shared components used throughout the Neptune codebase.
+The common module provides exceptions, environment constants, authentication,
+and helper utilities used throughout Neptune.
+[`exceptions.py`] defines Neptune-specific error types for API and client
+failures.
+[`warnings.py`] supplies deprecation and unsupported-type warning helpers.
+[`envs.py`] centralizes environment variable names for configuration.
+[`oauth.py`] implements OAuth2 token refresh for hosted API clients.
+[`git_info.py`] stores git commit metadata attached to experiment runs.
+[`patterns.py`] holds shared validation regex patterns.
+[`utils.py`] provides general helpers such as proxy and path utilities.
+The [`backends/`], [`hardware/`], [`patches/`], [`storage/`], and
+[`websockets/`] subpackages cover backend models, resource monitoring,
+third-party fixes, file uploads, and live socket communication.
 
-## Key Components
+## Subdirectories / Files
 
-- `exceptions.py`: Common exception classes
-- `warnings.py`: Warning utilities
-- `envs.py`: Environment variable handling
-- `oauth.py`: OAuth2 authentication
-- `git_info.py`: Git repository information extraction
-- `experiments.py`: Experiment-related utilities
-- `patterns.py`: Common patterns and constants
-- `utils.py`: General utility functions
+- `./backends/` - Backend communication utilities and shared API models.
+- `./hardware/` - Hardware resource monitoring for experiment runs.
+- `./patches/` - Third-party library patches and workarounds.
+- `./storage/` - File storage, chunking, and streaming utilities.
+- `./websockets/` - WebSocket communication with automatic reconnection.
+- `./__init__.py` - Package marker with no public re-exports.
+- `./envs.py` - Environment variable name constants.
+- `./exceptions.py` - Common Neptune exception classes.
+- `./experiments.py` - Legacy experiment placeholder type.
+- `./git_info.py` - Git repository metadata for experiments.
+- `./oauth.py` - OAuth2 authentication for hosted API clients.
+- `./patterns.py` - Shared regex patterns and constants.
+- `./utils.py` - General utility functions.
+- `./warnings.py` - Neptune-specific warning helpers.
 
-## Submodules
+## Usages
 
-- `backends/`: Backend communication utilities
-- `hardware/`: Hardware monitoring system
-- `patches/`: Third-party library patches
-- `storage/`: File storage and streaming
-- `websockets/`: WebSocket communication
+- [`hosted_client.py`] uses [`NeptuneAuthenticator`] from [`oauth.py`].
+- [`backend_config.py`] reads [`API_TOKEN_ENV_NAME`] from [`envs.py`].
+- [`hw::reporting`] wires gauges and monitors from [`hardware/`] during
+  experiment runs.
+- CLI and internal modules raise and catch types from [`exceptions.py`].
+- See [`../README.md`] for the Neptune v2 client overview.
 
-## Functionality
 
-This module provides:
-- Exception handling
-- Environment configuration
-- Authentication
-- Git integration
-- Hardware monitoring
-- File storage
-- WebSocket communication
-
-## Usage
-
-This module is used internally throughout Neptune to provide common functionality and avoid code duplication.
-
-## Parent Module
-
-See `../README.md` for information about the Neptune v2 client.
+[`API_TOKEN_ENV_NAME`]: envs.py
+[`NeptuneAuthenticator`]: oauth.NeptuneAuthenticator
+[`backend_config.py`]: ../../internal/backends/backend_config.py
+[`backends/`]: backends/
+[`envs.py`]: envs.py
+[`exceptions.py`]: exceptions.py
+[`git_info.py`]: git_info.py
+[`hardware/`]: hardware/
+[`hw::reporting`]: ../internal/hardware/hardware_metric_reporting_job.py
+[`hosted_client.py`]: ../../internal/backends/hosted_client.py
+[`oauth.py`]: oauth.py
+[`patterns.py`]: patterns.py
+[`patches/`]: patches/
+[`storage/`]: storage/
+[`utils.py`]: utils.py
+[`warnings.py`]: warnings.py
+[`websockets/`]: websockets/
+[`../README.md`]: ../README.md
 
 ---
-e7ce7290 2026-03-19T16:10:19
+2026-08-27T14:54:08

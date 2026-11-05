@@ -1,31 +1,44 @@
-# Storage
+# storage
 
-This module provides file storage and streaming utilities for Neptune operations.
+File storage and streaming utilities for Neptune uploads and artifacts.
 
 ## Purpose
 
-The storage module handles efficient file uploads, chunking, and streaming for artifacts and other file-based data.
+This module provides file storage and streaming utilities for Neptune
+operations.
+It handles efficient file uploads, chunking, and streaming for artifacts and
+other file-based data.
+[`FileChunker`] splits files into multipart upload chunks with size limits.
+[`UploadEntry`] represents a source file or stream with a target path.
+[`compress_to_tar_gz_in_memory`] builds tar.gz archives from upload entries
+in memory.
+Utility helpers manage upload packages, progress indicators, and file-name
+normalization.
 
-## Key Components
+## Subdirectories / Files
 
-- `datastream.py`: File chunking and streaming for efficient uploads
-- `storage_utils.py`: Utility functions for storage operations
+- `./__init__.py` - Package marker with no public re-exports.
+- `./datastream.py` - [`FileChunker`] chunking and in-memory tar.gz
+  compression.
+- `./storage_utils.py` - [`UploadEntry`], packages, and upload helpers.
 
-## Functionality
+## Usages
 
-This module provides:
-- File chunking for multipart uploads
-- Streaming data handling
-- Upload entry management
-- Efficient file transfer utilities
+- The Neptune client uses this module for artifact, image, and attachment
+  uploads.
+- [`hosted_file_operations`] imports chunking and upload utilities for
+  multipart backend uploads.
+- [`normalize_file_name`] from storage utilities is used when packaging source
+  code snapshots.
+- See [`../README.md`] for the parent common utilities system overview.
 
-## Usage
 
-This module is used internally by the Neptune client to handle file uploads, including artifacts, images, and other file attachments, with support for large files through chunking and streaming.
-
-## Parent Module
-
-See `../README.md` for information about the common utilities system.
+[`FileChunker`]: datastream.py
+[`UploadEntry`]: storage_utils.py
+[`compress_to_tar_gz_in_memory`]: datastream.py
+[`hosted_file_operations`]: ../../internal/backends/hosted_file_operations.py
+[`normalize_file_name`]: storage_utils.py
+[`../README.md`]: ../README.md
 
 ---
-7dcfce5a 2026-01-18T14:43:38
+2026-08-07T13:46:32

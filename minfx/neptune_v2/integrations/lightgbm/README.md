@@ -1,33 +1,33 @@
-# LightGBM Integration
+# lightgbm
 
-This module provides integration with the LightGBM gradient boosting framework.
+LightGBM gradient boosting integration for Neptune experiment tracking.
 
 ## Purpose
 
-The LightGBM integration enables automatic logging of LightGBM training runs, including metrics, model parameters, and feature importance.
+This module provides integration with the LightGBM gradient boosting framework.
+The LightGBM integration enables automatic logging of LightGBM training runs,
+including metrics, model parameters, and feature importance.
+This integration delegates to the [`neptune-lightgbm`] package for callbacks
+and logging implementations.
+The integration provides automatic logging of training metrics, model
+parameter tracking, feature importance visualization, and callback
+integration with LightGBM training.
 
-## Installation
+## Subdirectories / Files
 
-This integration requires the `neptune-lightgbm` package:
-```bash
-pip install neptune-lightgbm
-```
+- `./__init__.py` - Package entry that re-exports [`neptune-lightgbm`] symbols.
 
-## Functionality
+## Usages
 
-The LightGBM integration provides:
-- Automatic logging of training metrics
-- Model parameter tracking
-- Feature importance visualization
-- Callback integration with LightGBM training
+- Install the external dependency with pip install [`neptune-lightgbm`].
+- The integration is automatically available when [`neptune-lightgbm`] is
+  installed.
+- Use LightGBM callbacks through this module to enable Neptune logging.
+- See [`../README.md`] for the parent integrations module overview.
 
-## Usage
 
-The integration is automatically available when the `neptune-lightgbm` package is installed. Use LightGBM callbacks through this module to enable Neptune logging.
-
-## Parent Module
-
-See `../README.md` for information about Neptune integrations.
+[`neptune-lightgbm`]: __init__.py
+[`../README.md`]: ../README.md
 
 ---
-7dcfce5a 2026-01-18T14:43:38
+2026-08-07T13:46:32

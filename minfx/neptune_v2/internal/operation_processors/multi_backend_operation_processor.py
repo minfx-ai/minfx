@@ -88,7 +88,7 @@ class MultiBackendOperationProcessor(OperationProcessor):
         # Create base path ONCE (it contains a random key)
         base_path = get_container_full_path(ASYNC_DIRECTORY, container_id, container_type)
 
-        # Log backend index → address mapping at startup
+        # Log backend index -> address mapping at startup
         if len(backend_states) > 1:
             logger.info("Multi-backend configuration:")
             for state in backend_states:

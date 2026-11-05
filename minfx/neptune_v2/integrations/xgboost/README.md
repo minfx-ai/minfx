@@ -1,34 +1,33 @@
-# XGBoost Integration
+# xgboost
 
-This module provides integration with the XGBoost gradient boosting library.
+XGBoost gradient boosting integration for Neptune experiment tracking.
 
 ## Purpose
 
-The XGBoost integration enables automatic logging of XGBoost training runs, including metrics, model parameters, and feature importance.
+This module provides integration with the XGBoost gradient boosting library.
+The XGBoost integration enables automatic logging of XGBoost training runs,
+including metrics, model parameters, and feature importance.
+This integration delegates to the [`neptune-xgboost`] package for callbacks
+and logging implementations.
+The integration provides automatic logging of training metrics, model
+parameter tracking, feature importance visualization, and callback
+integration with XGBoost training.
 
-## Installation
+## Subdirectories / Files
 
-This integration requires the `neptune-xgboost` package:
-```bash
-pip install neptune-xgboost
-```
+- `./__init__.py` - Package entry that re-exports [`neptune-xgboost`] symbols.
 
-## Functionality
+## Usages
 
-The XGBoost integration provides:
-- Automatic logging of training metrics
-- Model parameter tracking
-- Feature importance visualization
-- Callback integration with XGBoost training
-- Model serialization and versioning
+- Install the external dependency with pip install [`neptune-xgboost`].
+- The integration is automatically available when [`neptune-xgboost`] is
+  installed.
+- Use XGBoost callbacks through this module to enable Neptune logging.
+- See [`../README.md`] for the parent integrations module overview.
 
-## Usage
 
-The integration is automatically available when the `neptune-xgboost` package is installed. Use XGBoost callbacks through this module to enable Neptune logging.
-
-## Parent Module
-
-See `../README.md` for information about Neptune integrations.
+[`neptune-xgboost`]: __init__.py
+[`../README.md`]: ../README.md
 
 ---
-7dcfce5a 2026-01-18T14:43:38
+2026-08-07T13:46:32

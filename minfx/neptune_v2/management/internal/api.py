@@ -52,6 +52,7 @@ from bravado.exception import (
 
 from minfx.neptune_v2.common.backends.utils import with_api_exceptions_handler
 from minfx.neptune_v2.common.envs import API_TOKEN_ENV_NAME
+from minfx.neptune_v2.common.envs import PROJECT_ENV_NAME
 from minfx.neptune_v2.internal.backends.hosted_client import (
     DEFAULT_REQUEST_KWARGS,
     create_backend_client,
@@ -113,7 +114,10 @@ def _get_token(api_token: str | None = None) -> str:
 def _get_http_client_and_api_url(api_token: str | None = None) -> tuple[object, str]:
     credentials = Credentials.from_token(api_token=_get_token(api_token=api_token))
     http_client, _client_config, api_url = create_http_client_with_auth(
-        credentials=credentials, ssl_verify=ssl_verify(), proxies={}
+        credentials=credentials,
+        ssl_verify=ssl_verify(),
+        proxies={},
+        project_name=os.getenv(PROJECT_ENV_NAME),
     )
     return http_client, api_url
 

@@ -1,33 +1,35 @@
-# Fast.ai Integration
+# fastai
 
-This module provides integration with the Fast.ai deep learning library.
+Fast.ai deep learning library integration for Neptune experiment tracking.
 
 ## Purpose
 
-The Fast.ai integration enables automatic logging of Fast.ai training runs, including metrics, model parameters, and learning rate schedules.
+This module provides integration with the Fast.ai deep learning library.
+The Fast.ai integration enables automatic logging of Fast.ai training runs.
+It logs training and validation metrics, model parameters, and learning
+rate schedules.
+It tracks learning rate schedules and model architecture details.
+It integrates with Fast.ai learner callbacks for Neptune logging.
+[`require_installed`] verifies the [`neptune-fastai`] package before import.
+The module re-exports callbacks and helpers from [`neptune_fastai::impl`].
 
-## Installation
+## Subdirectories / Files
 
-This integration requires the `neptune-fastai` package:
-```bash
-pip install neptune-fastai
-```
+- `./__init__.py` - Entrypoint; re-exports [`neptune_fastai::impl`].
 
-## Functionality
+## Usages
 
-The Fast.ai integration provides:
-- Automatic logging of training and validation metrics
-- Learning rate schedule tracking
-- Model architecture logging
-- Callback integration with Fast.ai learners
+- Install [`neptune-fastai`] with pip install neptune-fastai.
+- The integration is automatically available once [`neptune-fastai`] is
+  installed.
+- Use Fast.ai callbacks through this module to enable Neptune logging.
+- See [`../README.md`] for information about Neptune integrations.
 
-## Usage
 
-The integration is automatically available when the `neptune-fastai` package is installed. Use Fast.ai callbacks through this module to enable Neptune logging.
-
-## Parent Module
-
-See `../README.md` for information about Neptune integrations.
+[`require_installed`]: ../../../internal/utils/requirement_check.py
+[`neptune-fastai`]: neptune_fastai
+[`neptune_fastai::impl`]: neptune_fastai.impl
+[`../README.md`]: ../README.md
 
 ---
-7dcfce5a 2026-01-18T14:43:38
+2026-08-07T13:46:32

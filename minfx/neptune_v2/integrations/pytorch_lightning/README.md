@@ -1,34 +1,32 @@
-# PyTorch Lightning Integration
+# pytorch_lightning
 
-This module provides integration with the PyTorch Lightning framework.
+Integration with the PyTorch Lightning framework for Neptune experiment
+tracking.
 
 ## Purpose
 
-The PyTorch Lightning integration enables automatic logging of Lightning training runs, including metrics, hyperparameters, and model checkpoints.
+The PyTorch Lightning integration enables automatic logging of Lightning
+training runs, including metrics, hyperparameters, and model checkpoints.
+This integration requires the [`neptune-pytorch-lightning`] package for
+Lightning callbacks, loggers, checkpoint management, and multi-GPU training
+support.
 
-## Installation
+## Subdirectories / Files
 
-This integration requires the `neptune-pytorch-lightning` package:
-```bash
-pip install neptune-pytorch-lightning
-```
+- `./__init__.py` - Package entry that loads [`neptune-pytorch-lightning`] when
+  installed.
 
-## Functionality
+## Usages
 
-The PyTorch Lightning integration provides:
-- Automatic logging of training and validation metrics
-- Hyperparameter tracking
-- Model checkpoint management
-- Integration with Lightning callbacks and loggers
-- Multi-GPU training support
+- Install [`neptune-pytorch-lightning`] with pip before importing this module.
+- The integration is automatically available when [`neptune-pytorch-lightning`]
+  is installed.
+- Use the Neptune logger with Lightning trainers.
+- See [`../README.md`] for information about Neptune integrations.
 
-## Usage
 
-The integration is automatically available when the `neptune-pytorch-lightning` package is installed. Use the Neptune logger with Lightning trainers.
-
-## Parent Module
-
-See `../README.md` for information about Neptune integrations.
+[`neptune-pytorch-lightning`]: https://pypi.org/p/neptune-pytorch-lightning/
+[`../README.md`]: ../README.md
 
 ---
-7dcfce5a 2026-01-18T14:43:38
+2026-08-07T13:46:32

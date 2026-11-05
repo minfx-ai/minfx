@@ -47,6 +47,8 @@ class Credentials:
 
         api_token = api_token.strip()
         token_dict = Credentials._api_token_to_dict(api_token)
+        if api_token.startswith("{"):
+            api_token = base64.b64encode(api_token.encode("utf-8")).decode("ascii")
         if "api_address" not in token_dict:
             raise NeptuneInvalidApiTokenException
         api_address = token_dict["api_address"]
@@ -59,6 +61,12 @@ class Credentials:
     @staticmethod
     def _api_token_to_dict(api_token: str) -> dict[str, str]:
         try:
-            return json.loads(base64.b64decode(api_token.encode()).decode("utf-8"))
+            token = api_token.strip()
+            if not token.startswith("{"):
+                token = base64.b64decode(token.encode()).decode("utf-8")
+            result = json.loads(token)
+            if not isinstance(result, dict):
+                raise ValueError
+            return result
         except Exception:
             raise NeptuneInvalidApiTokenException

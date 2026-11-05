@@ -1,51 +1,64 @@
-# Internal Streams
+# streams
 
-This module provides stdout/stderr capture functionality.
+Stdout and stderr capture for Neptune experiment logging.
 
 ## Purpose
 
-The internal streams module captures stdout and stderr output from experiments and logs it to Neptune for later review.
+The internal streams module captures stdout and stderr output from experiments
+and logs it to Neptune for later review.
+[`StdStreamCaptureLogger`] wraps a stream with line buffering so each log
+entry contains a complete line.
+[`StdoutCaptureBackgroundJob`] and [`StderrCaptureBackgroundJob`] manage
+capture lifecycle as background jobs during a run.
 
-## Key Components
-
-- `std_stream_capture_logger.py`: Logger for captured stdout/stderr streams
-- `std_capture_background_job.py`: Background job for stream capture
-
-## Functionality
-
-This module provides:
-- Stdout/stderr capture during experiment execution
-- Automatic logging of console output to Neptune
-- Background stream monitoring
-- Line buffering for clean log entries
-
-## Line Buffering
-
-The capture uses line buffering to ensure each log entry contains a complete line.
-Without buffering, Python's `print()` function would create separate entries:
+The capture uses line buffering to avoid fragmented log entries.
+Without buffering, Python's [`print()`] would emit separate entries for each
+partial write:
 
 ```
 print("hello")  # Internally calls: write("hello"), write("\n")
 ```
 
-This would result in fragmented entries: `"hello"`, `"\n"`.
+That produces fragmented entries such as [`"hello"`] and [`"\n"`].
+With buffering, partial writes accumulate until a newline arrives.
+The result is a single entry such as [`"hello\n"`].
+Complete lines ending with [`\n`] are logged as one entry.
+Multiple lines in one write produce multiple entries.
+Partial lines without a newline wait until newline or [`close()`].
+On [`close()`], remaining buffered content is flushed.
 
-With line buffering, partial writes are accumulated until a newline is received,
-producing a single entry: `"hello\n"`.
+## Subdirectories / Files
 
-**Behavior:**
-- Complete lines (ending with `\n`) are logged as single entries
-- Multiple lines in one write produce multiple entries
-- Partial lines (no newline) are buffered until newline or `close()`
-- On `close()`, any remaining buffered content is flushed
+- `./__init__.py` - Package marker with no public re-exports.
+- `./std_capture_background_job.py` - [`StdoutCaptureBackgroundJob`] and
+  [`StderrCaptureBackgroundJob`] for run lifecycle capture.
+- `./std_stream_capture_logger.py` - [`StdStreamCaptureLogger`],
+  [`StdoutCaptureLogger`], and [`StderrCaptureLogger`] implementations.
 
-## Usage
+## Usages
 
-This module is used internally by the Neptune client to automatically capture and log console output when the capture feature is enabled.
+- [`metadata_containers/run.py`] appends capture jobs when stdout or stderr
+  capture is enabled on a run.
+- [`StdoutCaptureBackgroundJob`] starts [`StdoutCaptureLogger`] on start and
+  calls [`close()`] on stop.
+- [`StderrCaptureBackgroundJob`] starts [`StderrCaptureLogger`] on start and
+  calls [`close()`] on stop.
+- See [`../README.md`] for the parent internal module overview.
 
-## Parent Module
 
-See `../README.md` for information about internal Neptune components.
+[`StdStreamCaptureLogger`]: std_stream_capture_logger.StdStreamCaptureLogger
+[`StdoutCaptureLogger`]: std_stream_capture_logger.StdoutCaptureLogger
+[`StderrCaptureLogger`]: std_stream_capture_logger.StderrCaptureLogger
+[`StdoutCaptureBackgroundJob`]: std_capture_background_job.py
+[`StderrCaptureBackgroundJob`]: std_capture_background_job.py
+[`print()`]: std_stream_capture_logger.py
+[`"hello"`]: std_stream_capture_logger.py
+[`"\n"`]: std_stream_capture_logger.py
+[`"hello\n"`]: std_stream_capture_logger.py
+[`\n`]: std_stream_capture_logger.py
+[`close()`]: std_stream_capture_logger.py
+[`metadata_containers/run.py`]: ../../metadata_containers/run.py
+[`../README.md`]: ../README.md
 
 ---
-66b9539e 2026-01-25T15:43:12
+2026-08-07T13:46:32

@@ -16,6 +16,7 @@
 from __future__ import annotations
 
 import contextlib
+import os
 import threading
 import time
 from typing import (
@@ -23,122 +24,144 @@ from typing import (
     Callable,
 )
 
-from bravado.exception import HTTPUnauthorized
-from bravado.requests_client import Authenticator
-import jwt
-from oauthlib.oauth2 import (
-    OAuth2Error,
-    TokenExpiredError,
+from bravado.exception import (
+    HTTPUnauthorized,
 )
+from bravado.requests_client import Authenticator
 from requests.auth import AuthBase
-from requests_oauthlib import OAuth2Session
+from requests import Request
 
 from minfx.neptune_v2.common.backends.utils import with_api_exceptions_handler
+from minfx.neptune_v2.envs import PROJECT_ENV_NAME
 
 if TYPE_CHECKING:
     from requests import PreparedRequest
-from minfx.neptune_v2.common.exceptions import NeptuneInvalidApiTokenException
+from minfx.neptune_v2.common.exceptions import (
+    NeptuneInvalidApiTokenException,
+)
 from minfx.neptune_v2.common.utils import update_session_proxies
+from minfx.neptune_v2.exceptions import NeptuneMissingProjectNameException
+from minfx.neptune_v2.internal.backends.utils import (
+    build_operation_url,
+    handle_server_raw_response_messages,
+)
 
-_decoding_options = {
-    "verify_signature": False,
-    "verify_exp": False,
-    "verify_nbf": False,
-    "verify_iat": False,
-    "verify_aud": False,
-    "verify_iss": False,
-}
+AUTH_TOKEN_TTL_SECS = 5 * 60
+BACKEND_AUTH_PATH = "/api/v1/auth/backend"
 
 
 class NeptuneAuth(AuthBase):
     __LOCK = threading.RLock()
 
-    def __init__(self, session_factory: Callable[[], OAuth2Session]) -> None:
-        self.session_factory = session_factory
-        self.session = session_factory()
-        self.token_expires_at = 0
+    def __init__(self, access_token_factory: Callable[[str | None], str], default_project_name: str | None) -> None:
+        self._access_token_factory = access_token_factory
+        self._project_name = default_project_name
+        self._access_token: str | None = None
+        self._token_created_at = 0.0
 
     def __call__(self, r: PreparedRequest) -> PreparedRequest:
-        try:
-            return self._add_token(r)
-        except TokenExpiredError:
-            self._refresh_token()
-            return self._add_token(r)
+        self.refresh_token_if_needed()
+        return self._add_token(r)
 
     def _add_token(self, r: PreparedRequest) -> PreparedRequest:
-        r.url, r.headers, r.body = self.session._client.add_token(
-            r.url, http_method=r.method, body=r.body, headers=r.headers
-        )
+        if self._access_token is None:
+            self._refresh_token()
+        r.headers["Authorization"] = f"Bearer {self._access_token}"
         return r
 
     @with_api_exceptions_handler
-    def refresh_token_if_needed(self) -> None:
-        if self.token_expires_at - time.time() < 30:
+    def refresh_token_if_needed(self, project_name_hint: str | None = None) -> None:
+        if project_name_hint is not None:
+            self._project_name = project_name_hint
+        if self._access_token is None:
+            self._refresh_token()
+            return
+        if time.time() - self._token_created_at >= AUTH_TOKEN_TTL_SECS:
             self._refresh_token()
 
     def _refresh_token(self) -> None:
         with self.__LOCK:
-            try:
-                self._refresh_session_token()
-            except OAuth2Error:
-                # for some reason oauth session is no longer valid. Retry by creating new fresh session
-                # we can safely ignore this error, as it will be thrown again if it's persistent
-                with contextlib.suppress(Exception):
-                    self.session.close()
-                self.session = self.session_factory()
-                self._refresh_session_token()
-
-    def _refresh_session_token(self) -> None:
-        self.session.refresh_token(self.session.auto_refresh_url, verify=self.session.verify)
-        if self.session.token is not None and self.session.token.get("access_token") is not None:
-            decoded_json_token = jwt.decode(self.session.token.get("access_token"), options=_decoding_options)
-            self.token_expires_at = decoded_json_token.get("exp")
+            self._access_token = self._access_token_factory(self._project_name)
+            self._token_created_at = time.time()
 
 
 class NeptuneAuthenticator(Authenticator):
-    def __init__(self, api_token: str, backend_client: object, ssl_verify: bool, proxies: dict | None) -> None:
+    def __init__(
+        self,
+        api_token: str,
+        backend_client: object,
+        ssl_verify: bool,
+        proxies: dict | None,
+        project_name: str | None,
+    ) -> None:
         super().__init__(host="")
 
-        # We need to pass a lambda to be able to re-create fresh session at any time when needed
-        def session_factory() -> OAuth2Session:
+        # We need to pass a lambda to re-create fresh session token when needed.
+        def access_token_factory(project_name_hint: str | None) -> str:
+            organization_name, workspace_name = _resolve_project_name_parts(project_name_hint)
+            request_body = {
+                "api_token": api_token,
+                "project_name": f"{organization_name}/{workspace_name}",
+            }
+            request_url = build_operation_url(backend_client.swagger_spec.api_url, BACKEND_AUTH_PATH)
+            request = Request(method="POST", url=request_url, json=request_body)
+
+            prepared_request = backend_client.swagger_spec.http_client.session.prepare_request(request)
+            with contextlib.suppress(Exception):
+                update_session_proxies(backend_client.swagger_spec.http_client.session, proxies)
+
             try:
-                auth_tokens = backend_client.api.exchangeApiToken(X_Neptune_Api_Token=api_token).response().result
+                response = handle_server_raw_response_messages(
+                    backend_client.swagger_spec.http_client.session.send(
+                        prepared_request,
+                        verify=ssl_verify,
+                    )
+                )
             except HTTPUnauthorized:
                 raise NeptuneInvalidApiTokenException
 
-            decoded_json_token = jwt.decode(auth_tokens.accessToken, options=_decoding_options)
-            expires_at = decoded_json_token.get("exp")
-            client_name = decoded_json_token.get("azp")
-            refresh_url = "{realm_url}/protocol/openid-connect/token".format(realm_url=decoded_json_token.get("iss"))
-            token = {
-                "access_token": auth_tokens.accessToken,
-                "refresh_token": auth_tokens.refreshToken,
-                "expires_in": expires_at - time.time(),
-            }
+            if response.status_code == HTTPUnauthorized.status_code:
+                raise NeptuneInvalidApiTokenException
+            response.raise_for_status()
 
-            session = OAuth2Session(
-                client_id=client_name,
-                token=token,
-                auto_refresh_url=refresh_url,
-                auto_refresh_kwargs={"client_id": client_name},
-                token_updater=_no_token_updater,
-            )
-            session.verify = ssl_verify
+            response_data = response.json()
+            session_tokens = response_data.get("session_tokens", {})
+            access_token = session_tokens.get("access_token")
+            if not isinstance(access_token, str) or access_token == "":
+                raise NeptuneInvalidApiTokenException
+            return access_token
 
-            update_session_proxies(session, proxies)
-            return session
-
-        self.auth = NeptuneAuth(session_factory)
+        self.auth = NeptuneAuth(access_token_factory, project_name)
 
     def matches(self, url: str) -> bool:
         return True
 
     def apply(self, request: PreparedRequest) -> PreparedRequest:
-        self.auth.refresh_token_if_needed()
+        self.auth.refresh_token_if_needed(_extract_project_name_hint(request))
         request.auth = self.auth
         return request
 
 
-def _no_token_updater():
-    # For unit tests.
+def _resolve_project_name_parts(project_name: str | None) -> tuple[str, str]:
+    normalized_project_name = project_name
+    if normalized_project_name is None:
+        normalized_project_name = os.getenv(PROJECT_ENV_NAME)
+    if normalized_project_name is None:
+        raise NeptuneMissingProjectNameException()
+
+    project_parts = normalized_project_name.split("/", maxsplit=1)
+    if len(project_parts) != 2:
+        raise NeptuneMissingProjectNameException()
+    organization_name, workspace_name = project_parts
+    if organization_name == "" or workspace_name == "":
+        raise NeptuneMissingProjectNameException()
+    return organization_name, workspace_name
+
+
+def _extract_project_name_hint(request: PreparedRequest) -> str | None:
+    request_params = getattr(request, "params", None)
+    if isinstance(request_params, dict):
+        project_identifier = request_params.get("projectIdentifier")
+        if isinstance(project_identifier, str):
+            return project_identifier
     return None

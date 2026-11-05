@@ -59,9 +59,9 @@ if TYPE_CHECKING:
 
     from minfx.neptune_v2.internal.credentials import Credentials
 
-BACKEND_SWAGGER_PATH = "/api/backend/swagger.json"
-LEADERBOARD_SWAGGER_PATH = "/api/leaderboard/swagger.json"
-ARTIFACTS_SWAGGER_PATH = "/api/artifacts/swagger.json"
+BACKEND_SWAGGER_PATH = "/api/v1/backend/swagger.json"
+LEADERBOARD_SWAGGER_PATH = "/api/v1/leaderboard/swagger.json"
+ARTIFACTS_SWAGGER_PATH = "/api/v1/artifacts/swagger.json"
 
 CONNECT_TIMEOUT = 30  # helps detecting internet connection lost
 REQUEST_TIMEOUT = int(os.getenv(NEPTUNE_REQUEST_TIMEOUT, "600"))
@@ -220,6 +220,7 @@ def create_http_client_with_auth(
     credentials: Credentials,
     ssl_verify: bool,
     proxies: dict[str, str],
+    project_name: str | None = None,
     backend_index: int | None = None,
 ) -> tuple[RequestsClient, ClientConfig, str]:
     """Create authenticated HTTP client.
@@ -251,6 +252,7 @@ def create_http_client_with_auth(
         ),
         ssl_verify,
         proxies,
+        project_name,
     )
 
     return http_client, client_config, api_url

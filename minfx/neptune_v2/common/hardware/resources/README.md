@@ -1,32 +1,44 @@
-# System Resources
+# resources
 
-This module provides system resource information and configuration for hardware monitoring.
+System resource detection and configuration for hardware monitoring.
 
 ## Purpose
 
-The resources module collects and provides information about available system resources (CPU cores, memory, GPUs) to configure the hardware monitoring system appropriately.
+The resources module collects and provides information about available system
+resources (CPU cores, memory, GPUs) to configure the hardware monitoring system
+appropriately.
+[`SystemResourceInfo`] holds detected CPU, memory, and GPU capacity.
+[`SystemResourceInfoFactory`] builds that snapshot from system and GPU monitors.
+[`GPUCardIndicesProvider`] resolves which GPU cards are visible for monitoring.
 
-## Key Components
+## Subdirectories / Files
 
-- `SystemResourceInfo`: Data class containing system resource information
-- `SystemResourceInfoFactory`: Factory for detecting and creating system resource info
-- `GpuCardIndicesProvider`: Provides GPU card indices for monitoring
+- `./__init__.py` - Package marker with no public re-exports.
+- `./gpu_card_indices_provider.py` - [`GPUCardIndicesProvider`] for resolving
+  GPU card indices from CUDA_VISIBLE_DEVICES.
+- `./system_resource_info.py` - [`SystemResourceInfo`] data class with CPU,
+  memory, and GPU resource fields.
+- `./system_resource_info_factory.py` - [`SystemResourceInfoFactory`] for
+  detecting and creating system resource info.
 
-## Functionality
+## Usages
 
-This module:
-- Detects available CPU cores
-- Determines total system memory
-- Identifies available GPU cards
-- Provides resource information for configuring metrics and gauges
+- [`SystemResourceInfoFactory::create`] builds [`SystemResourceInfo`] from
+  system and GPU monitors for a gauge mode.
+- [`MetricServiceFactory::create`] uses [`SystemResourceInfoFactory`] during
+  hardware monitoring initialization.
+- [`MetricsFactory`] reads [`SystemResourceInfo`] to decide which GPU metrics
+  to register.
+- See [`../README.md`] for the parent hardware monitoring overview.
 
-## Usage
 
-This module is used during initialization of the hardware monitoring system to detect available resources and configure appropriate metrics and gauges.
-
-## Parent Module
-
-See `../README.md` for information about the hardware monitoring system.
+[`SystemResourceInfo`]: ./system_resource_info.py
+[`SystemResourceInfoFactory`]: ./system_resource_info_factory.py
+[`GPUCardIndicesProvider`]: ./gpu_card_indices_provider.py
+[`SystemResourceInfoFactory::create`]: ./system_resource_info_factory.py
+[`MetricServiceFactory::create`]: ../metrics/service/metric_service_factory.py
+[`MetricsFactory`]: ../metrics/metrics_factory.py
+[`../README.md`]: ../README.md
 
 ---
-7dcfce5a 2026-01-18T14:43:38
+2026-08-07T13:46:32

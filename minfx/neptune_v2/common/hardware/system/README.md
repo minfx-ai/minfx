@@ -1,29 +1,40 @@
-# System Monitoring
+# system
 
-This module provides system-level resource monitoring capabilities.
+System-level resource monitoring via psutil wrappers.
 
 ## Purpose
 
-The system monitoring module wraps system-level APIs (psutil) to provide cross-platform access to system resource information.
+The system module wraps psutil to provide cross-platform access to system
+resource information.
+It exposes CPU count, CPU usage percent, and virtual memory statistics for
+host-level hardware monitoring.
 
-## Key Components
+## Subdirectories / Files
 
-- `SystemMonitor`: Wrapper around psutil for querying system resources
+- `./__init__.py` - Package marker with no public re-exports.
+- `./system_monitor.py` - [`SystemMonitor`] wrapper around psutil for querying
+  system resources.
 
-## Functionality
+## Usages
 
-The system monitor provides:
-- CPU count and usage information
-- Virtual memory statistics
-- System-wide resource metrics
+- [`gauges::SystemCpuUsageGauge`] and [`gauges::SystemMemoryUsageGauge`] call
+  [`SystemMonitor`] for host CPU percent and virtual memory totals.
+- [`CGroupMonitor`] receives a [`SystemMonitor`] for host CPU count and memory
+  totals when cgroup limits are relative to the host.
+- [`SystemResourceInfoFactory`] uses [`SystemMonitor`] for CPU core count and
+  total memory at experiment startup.
+- [`service::MetricServiceFactory`] wires [`SystemMonitor`] into resource
+  detection and gauge construction.
+- See [`../README.md`] for the parent hardware monitoring overview.
 
-## Usage
 
-This module is used by other hardware monitoring components (cgroup monitor, gauges) to access system-level resource information.
-
-## Parent Module
-
-See `../README.md` for information about the hardware monitoring system.
+[`SystemMonitor`]: system_monitor.SystemMonitor
+[`gauges::SystemCpuUsageGauge`]: ../gauges/cpu.py
+[`gauges::SystemMemoryUsageGauge`]: ../gauges/memory.py
+[`CGroupMonitor`]: ../cgroup/cgroup_monitor.py
+[`SystemResourceInfoFactory`]: ../resources/system_resource_info_factory.py
+[`service::MetricServiceFactory`]: ../metrics/service/metric_service_factory.py
+[`../README.md`]: ../README.md
 
 ---
-7dcfce5a 2026-01-18T14:43:38
+2026-08-07T13:46:32

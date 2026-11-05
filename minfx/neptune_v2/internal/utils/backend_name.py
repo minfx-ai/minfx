@@ -33,6 +33,8 @@ import base64
 import json
 from urllib.parse import urlparse
 
+from minfx.neptune_v2.internal.credentials import Credentials
+
 
 def backend_name_from_url(url: str) -> str:
     """Derive filesystem-safe backend name from URL.
@@ -93,17 +95,17 @@ def url_matches_backend_name(url: str, backend_name: str) -> bool:
 def get_backend_name_from_token(api_token: str) -> str | None:
     """Extract backend name from API token.
 
-    API token is base64-encoded JSON containing api_address and api_key.
+    API token is JSON or base64-encoded JSON containing api_address and api_key.
     We use api_address as the canonical backend identifier.
 
     Args:
-        api_token: The base64-encoded API token.
+        api_token: The JSON or base64-encoded API token.
 
     Returns:
         The backend name derived from the token, or None if invalid.
     """
     try:
-        decoded = json.loads(base64.b64decode(api_token.strip().encode()).decode("utf-8"))
+        decoded = Credentials._api_token_to_dict(api_token)
         # api_address is the canonical backend URL in tokens
         api_url = decoded.get("api_address")
         if api_url:

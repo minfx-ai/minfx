@@ -1,34 +1,36 @@
-# Transformers Integration
+# transformers
 
-This module provides integration with Hugging Face Transformers library.
+Hugging Face Transformers integration for Neptune experiment tracking.
 
 ## Purpose
 
-The Transformers integration enables tracking of Hugging Face model training, including fine-tuning runs, model configurations, and evaluation metrics.
+This module provides integration with the Hugging Face Transformers library.
+The Transformers integration enables tracking of Hugging Face model training.
+It supports fine-tuning runs, model configurations, and evaluation metrics.
+It logs training metrics, model configuration, and tokenizer configuration.
+It integrates with Trainer callbacks for Neptune logging.
+It supports model checkpoint management during training.
+[`require_installed`] verifies the [`transformers`] package before import.
+The module re-exports [`NeptuneCallback`] from [`transformers::integrations`].
 
-## Installation
+## Subdirectories / Files
 
-This integration requires the `neptune-transformers` package:
-```bash
-pip install neptune-transformers
-```
+- `./__init__.py` - Entrypoint; re-exports [`NeptuneCallback`].
 
-## Functionality
+## Usages
 
-The Transformers integration provides:
-- Automatic logging of training metrics
-- Model configuration tracking
-- Tokenizer configuration logging
-- Integration with Trainer callbacks
-- Model checkpoint management
+- Install [`transformers`] with pip install transformers.
+- The integration is automatically available when [`transformers`] is
+  installed.
+- Use Transformers callbacks through this module to track training runs.
+- See [`../README.md`] for information about Neptune integrations.
 
-## Usage
 
-The integration is automatically available when the `neptune-transformers` package is installed. Use Transformers callbacks through this module to track training runs.
-
-## Parent Module
-
-See `../README.md` for information about Neptune integrations.
+[`require_installed`]: ../../../internal/utils/requirement_check.py
+[`transformers`]: transformers
+[`NeptuneCallback`]: transformers.integrations.NeptuneCallback
+[`transformers::integrations`]: transformers.integrations
+[`../README.md`]: ../README.md
 
 ---
-7dcfce5a 2026-01-18T14:43:38
+2026-08-07T13:46:32

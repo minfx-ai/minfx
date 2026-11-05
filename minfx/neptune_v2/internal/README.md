@@ -1,58 +1,82 @@
-# Internal
+# internal
 
-This module contains internal implementation details of the Neptune client.
+Internal implementation details of the Neptune client.
 
 ## Purpose
 
-The internal module houses the core implementation of Neptune's functionality, including backends, operation processing, hardware monitoring, and various utilities.
+The internal module houses the core implementation of Neptune's functionality.
+It provides backends, operation processing, hardware monitoring, and various
+utilities that power the public Neptune API.
+[`operation.py`] defines [`Operation`] types sent to backends.
+[`operation_visitor.py`] implements the visitor pattern over operations.
+[`value_to_attribute_visitor.py`] converts Python values to Neptune
+attributes.
+[`background_job.py`] defines the [`BackgroundJob`] base class for periodic
+tasks.
+[`state.py`] tracks container lifecycle and operation acceptance state.
+[`credentials.py`] wraps API tokens and connection settings in
+[`Credentials`].
 
-## Key Components
+## Subdirectories / Files
 
-- `operation.py`: Operation definitions
-- `operation_visitor.py`: Operation visitor pattern implementation
-- `value_to_attribute_visitor.py`: Value-to-attribute conversion
-- `background_job.py`: Background job base classes
-- `state.py`: State management
-- `credentials.py`: Credential handling
-- `exceptions.py`: Internal exceptions
-- `constants.py`: Internal constants
-- `container_type.py`: Container type definitions
-- `container_structure.py`: Container structure definitions
-- `id_formats.py`: ID format utilities
+- `./artifacts/` - Artifact management, hashing, and storage coordination.
+- `./backends/` - Backend implementations for Neptune service communication.
+- `./hardware/` - Hardware metric reporting background jobs.
+- `./init/` - Initialization defaults and timing thresholds.
+- `./notebooks/` - Jupyter notebook integration and comm handling.
+- `./operation_processors/` - Async, sync, and offline operation processors.
+- `./signals_processing/` - OS signal handling and graceful shutdown.
+- `./streams/` - Stdout and stderr stream capture.
+- `./threading/` - Daemon thread utilities for background workers.
+- `./types/` - Internal type definitions and SDK compatibility helpers.
+- `./utils/` - Internal utility functions for paths, logging, and git.
+- `./websockets/` - WebSocket coordination and signal background jobs.
+- `./__init__.py` - Package marker with no public re-exports.
+- `./backgroud_job_list.py` - [`BackgroundJobList`] composite background job.
+- `./background_job.py` - [`BackgroundJob`] abstract base class.
+- `./constants.py` - Internal constants shared across modules.
+- `./container_structure.py` - [`ContainerStructure`] hierarchical path tree.
+- `./container_type.py` - [`ContainerType`] enum for run and project kinds.
+- `./credentials.py` - [`Credentials`] for API token and proxy configuration.
+- `./exceptions.py` - [`NeptuneInternalException`] base internal exception.
+- `./extensions.py` - [`load_extensions`] entry-point plugin loader.
+- `./id_formats.py` - ID format parsing and validation utilities.
+- `./operation.py` - [`Operation`] definitions for attribute mutations.
+- `./operation_visitor.py` - [`OperationVisitor`] generic operation visitor.
+- `./state.py` - Container and forking state enums.
+- `./value_to_attribute_visitor.py` - [`ValueToAttributeVisitor`] value
+  converter.
 
-## Submodules
+## Usages
 
-- `artifacts/`: Artifact management
-- `backends/`: Backend implementations
-- `hardware/`: Hardware monitoring
-- `init/`: Initialization logic
-- `notebooks/`: Jupyter notebook integration
-- `operation_processors/`: Operation processing
-- `signals_processing/`: Signal handling
-- `streams/`: Stream capture
-- `threading/`: Threading utilities
-- `types/`: Internal type definitions
-- `utils/`: Internal utilities
-- `websockets/`: WebSocket coordination
+- This module is for internal use only.
+- Users should interact with Neptune through the public API in parent modules.
+- [`operation.py`] operations flow through `./operation_processors/` into
+  `./backends/` for server communication.
+- [`BackgroundJob`] subclasses in `./hardware/`, `./streams/`, and
+  `./websockets/` run periodic monitoring and capture tasks.
+- `./signals_processing/` handles graceful shutdown on OS signals.
+- `./artifacts/` manages artifact hashing and storage coordination.
+- See [`../README.md`] for the parent neptune_v2 module overview.
 
-## Functionality
 
-This module provides the internal machinery that powers Neptune, including:
-- Backend communication
-- Operation processing and queuing
-- Hardware monitoring
-- Artifact management
-- Signal handling
-- Stream capture
-- Background jobs
-
-## Usage
-
-This module is for internal use only. Users should interact with Neptune through the public API in the parent modules.
-
-## Parent Module
-
-See `../README.md` for information about the Neptune v2 client.
+[`Operation`]: operation.Operation
+[`BackgroundJob`]: background_job.BackgroundJob
+[`BackgroundJobList`]: backgroud_job_list.BackgroundJobList
+[`ContainerStructure`]: container_structure.ContainerStructure
+[`ContainerType`]: container_type.ContainerType
+[`Credentials`]: credentials.Credentials
+[`NeptuneInternalException`]: exceptions.NeptuneInternalException
+[`OperationVisitor`]: operation_visitor.OperationVisitor
+[`ValueToAttributeVisitor`]: value_to_attribute_visitor.ValueToAttributeVisitor
+[`load_extensions`]: extensions.load_extensions
+[`operation.py`]: operation.py
+[`operation_visitor.py`]: operation_visitor.py
+[`value_to_attribute_visitor.py`]: value_to_attribute_visitor.py
+[`background_job.py`]: background_job.py
+[`state.py`]: state.py
+[`credentials.py`]: credentials.py
+[`../README.md`]: ../README.md
 
 ---
-117f4b6e7 2026-04-21T14:32:49
+2026-11-05T16:01:08

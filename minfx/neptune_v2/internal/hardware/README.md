@@ -1,29 +1,31 @@
-# Internal Hardware
+# hardware
 
-This module provides internal hardware monitoring coordination.
+Internal hardware monitoring coordination for the Neptune client.
 
 ## Purpose
 
-The internal hardware module coordinates hardware metric collection and reporting as a background job.
+The internal hardware module coordinates hardware metric collection and
+reporting as a background job.
+[`HardwareMetricReportingJob`] runs periodic sampling of system and GPU
+metrics and logs them to experiment attributes.
 
-## Key Components
+## Subdirectories / Files
 
-- `hardware_metric_reporting_job.py`: Background job for periodic hardware metric collection and reporting
+- `./__init__.py` - Package marker with no public re-exports.
+- `./hardware_metric_reporting_job.py` - [`HardwareMetricReportingJob`]
+  background job for periodic hardware metric collection and reporting.
 
-## Functionality
+## Usages
 
-This module provides:
-- Background job scheduling for hardware metrics
-- Coordination between metric collection and backend reporting
-- Lifecycle management for hardware monitoring
+- The Neptune client starts [`HardwareMetricReportingJob`] during experiment
+  execution to monitor hardware in the background.
+- The job creates float series attributes under the monitoring namespace for
+  each hardware gauge.
+- See [`../README.md`] for the parent internal module overview.
 
-## Usage
 
-This module is used internally by the Neptune client to run hardware monitoring in the background during experiment execution.
-
-## Parent Module
-
-See `../README.md` for information about internal Neptune components.
+[`HardwareMetricReportingJob`]: hardware_metric_reporting_job.py
+[`../README.md`]: ../README.md
 
 ---
-7dcfce5a 2026-01-18T14:43:38
+2026-08-07T13:46:32

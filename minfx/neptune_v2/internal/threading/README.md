@@ -1,30 +1,35 @@
-# Internal Threading
+# threading
 
-This module provides threading utilities for Neptune's background operations.
+Threading utilities for Neptune background operations.
 
 ## Purpose
 
-The internal threading module provides daemon thread management for background jobs and operations.
+The threading module provides daemon thread management for background jobs.
+[`Daemon`] is a thread base class with pause, resume, interrupt, and sleep
+control.
+[`ConnectionRetryWrapper`] retries work on connection loss with exponential
+backoff.
 
-## Key Components
+## Subdirectories / Files
 
-- `daemon.py`: Daemon thread utilities and management
+- `./__init__.py` - Package marker with no public re-exports.
+- `./daemon.py` - [`Daemon`] thread base class and [`ConnectionRetryWrapper`]
+  decorator.
 
-## Functionality
+## Usages
 
-This module provides:
-- Daemon thread creation and management
-- Background job execution
-- Thread lifecycle management
-- Graceful thread shutdown
+- Neptune background jobs subclass [`Daemon`] and implement [`work`].
+- Hardware monitoring, async operation processing, signal handling, and stream
+  capture use this module.
+- [`ConnectionRetryWrapper`] wraps daemon work methods to survive transient
+  backend connection failures.
+- See [`../README.md`] for the parent internal module overview.
 
-## Usage
 
-This module is used internally by the Neptune client to run background jobs (hardware monitoring, operation processing, signal handling, etc.) in daemon threads.
-
-## Parent Module
-
-See `../README.md` for information about internal Neptune components.
+[`Daemon`]: daemon.Daemon
+[`ConnectionRetryWrapper`]: daemon.Daemon.ConnectionRetryWrapper
+[`work`]: daemon.Daemon.work
+[`../README.md`]: ../README.md
 
 ---
-e5eef531 2026-03-02T09:34:16
+2026-08-07T13:46:32

@@ -1,33 +1,40 @@
-# Internal Signals Processing
+# signals_processing
 
-This module provides signal handling for graceful shutdown and cleanup.
+Internal signal handling for async operation batch monitoring and callbacks.
 
 ## Purpose
 
-The signals processing module handles OS signals (SIGTERM, SIGINT, etc.) to ensure graceful shutdown of Neptune runs when processes are interrupted.
+The signals processing module tracks async operation batch lifecycle events.
+It detects lag and stalled progress, then invokes user-configured callbacks.
+[`SignalsProcessor`] consumes queued signals on a daemon thread.
+[`CallbacksMonitor`] wires that processor into Neptune background jobs.
 
-## Key Components
+## Subdirectories / Files
 
-- `signals.py`: Signal definitions and handlers
-- `signals_processor.py`: Signal processing logic
-- `background_job.py`: Background job for signal monitoring
-- `utils.py`: Signal processing utilities
+- `./__init__.py` - Package marker with no public re-exports.
+- `./background_job.py` - [`CallbacksMonitor`] background job for signal
+  monitoring.
+- `./signals.py` - Signal dataclasses and [`SignalsVisitor`] handler
+  interface.
+- `./signals_processor.py` - [`SignalsProcessor`] queue consumer and callback
+  dispatch.
+- `./utils.py` - Helpers that enqueue batch lifecycle signals.
 
-## Functionality
+## Usages
 
-This module provides:
-- OS signal registration and handling
-- Graceful shutdown on process termination
-- Cleanup coordination across components
-- Background signal monitoring
+- Neptune starts [`CallbacksMonitor`] as a background job during client
+  initialization.
+- Operation processors enqueue batch signals through helpers in [`utils.py`].
+- [`SignalsProcessor`] invokes lag and no-progress callbacks when thresholds
+  are exceeded.
+- See [`../README.md`] for the parent internal module overview.
 
-## Usage
 
-This module is used internally by the Neptune client to automatically handle process interruptions and ensure data is properly flushed and connections are closed before exit.
-
-## Parent Module
-
-See `../README.md` for information about internal Neptune components.
+[`SignalsProcessor`]: signals_processor.SignalsProcessor
+[`CallbacksMonitor`]: background_job.CallbacksMonitor
+[`SignalsVisitor`]: signals.SignalsVisitor
+[`utils.py`]: utils.py
+[`../README.md`]: ../README.md
 
 ---
-7dcfce5a 2026-01-18T14:43:38
+2026-08-07T13:46:32

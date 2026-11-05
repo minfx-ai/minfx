@@ -1,40 +1,32 @@
-# Management
+# management
 
-This module provides management API for Neptune workspaces and projects.
+This module provides the management API for Neptune workspaces and projects.
 
 ## Purpose
 
-The management module implements administrative operations for managing Neptune workspaces, projects, and related resources.
+The management module implements administrative operations for managing Neptune
+workspaces, projects, and related resources.
+[`exceptions.py`] defines management-specific failure types.
+The [`internal/`] submodule implements the HTTP-backed management API.
 
-## Key Components
+## Subdirectories / Files
 
-- `exceptions.py`: Management-specific exceptions
+- `./internal/` - Internal management API implementation.
+- `./__init__.py` - Public management API re-exports and usage examples.
+- `./exceptions.py` - Management-specific exception types.
 
-## Submodules
+## Usages
 
-- `internal/`: Internal management API implementation
+- Import the public API from minfx.neptune_v2.management.
+- Use [`__init__.py`] exports for workspace and project administration.
+- [`exceptions.py`] raises typed failures when management operations fail.
+- See [`../README.md`] for the parent neptune_v2 module overview.
 
-## Functionality
 
-This module provides:
-- Workspace management
-- Project administration
-- User and team management
-- Access control
-- Resource management
-
-## Usage
-
-Use the management API for administrative tasks:
-```python
-from minfx.neptune_v2 import management
-
-# Workspace and project management operations
-```
-
-## Parent Module
-
-See `../README.md` for information about the Neptune v2 client.
+[`__init__.py`]: __init__.py
+[`exceptions.py`]: exceptions.py
+[`internal/`]: internal/
+[`../README.md`]: ../README.md
 
 ---
-289f9a7a 2026-03-03T12:24:43
+2026-08-27T14:54:08

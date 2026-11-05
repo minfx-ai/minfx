@@ -1,36 +1,39 @@
-# Core
+# core
 
-This module provides core components for Neptune's operation system.
+Core components for Neptune's operation system.
 
 ## Purpose
 
-The core module implements fundamental components for operation storage, queuing, and metadata management.
+The core module implements fundamental components for operation storage,
+queuing, and metadata management.
+The [`components/`] submodule provides abstractions, on-disk storage, metadata
+persistence, and a disk-backed queue.
+[`components/abstract.py`] defines base classes for resource lifecycle
+management.
+[`components/operation_storage.py`] implements operation storage and retrieval.
+[`components/metadata_file.py`] handles metadata file management.
+[`components/queue/`] provides a persistent queue implementation.
 
-## Key Components
+## Subdirectories / Files
 
-- `components/abstract.py`: Abstract base classes for core components
-- `components/operation_storage.py`: Operation storage implementation
-- `components/metadata_file.py`: Metadata file handling
+- `./components/` - Abstractions, storage, metadata, and queue implementations.
+- `./__init__.py` - Package marker with no public re-exports.
 
-## Submodules
+## Usages
 
-- `components/queue/`: Disk-based queue system
+- Neptune uses this module internally to manage operations and ensure data
+  persistence.
+- Operation processors compose storage, metadata, and queue components from
+  [`components/`].
+- See [`../README.md`] for information about the Neptune v2 client.
 
-## Functionality
 
-The core module provides:
-- Operation storage and retrieval
-- Persistent queue implementation
-- Metadata file management
-- Resource lifecycle management
-
-## Usage
-
-This module is used internally by Neptune to manage operations and ensure data persistence.
-
-## Parent Module
-
-See `../README.md` for information about the Neptune v2 client.
+[`components/`]: components/
+[`components/abstract.py`]: components/abstract.py
+[`components/operation_storage.py`]: components/operation_storage.py
+[`components/metadata_file.py`]: components/metadata_file.py
+[`components/queue/`]: components/queue/
+[`../README.md`]: ../README.md
 
 ---
-e4caafc0 2026-02-13T10:59:04
+2026-08-07T13:46:32

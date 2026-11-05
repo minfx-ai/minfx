@@ -1,33 +1,33 @@
-# MosaicML Integration
+# mosaicml
 
-This module provides integration with MosaicML's training framework.
+Integration with MosaicML's training framework for Neptune experiment
+tracking.
 
 ## Purpose
 
-The MosaicML integration enables tracking of MosaicML training runs, including metrics, model checkpoints, and training configurations.
+This module provides integration with MosaicML's training framework.
+The MosaicML integration enables tracking of MosaicML training runs, including
+metrics, model checkpoints, and training configurations.
+It provides automatic logging of training metrics and checkpoint tracking.
+It supports training configuration logging and MosaicML callback integration.
+This integration requires the [`mosaicml`] package for Composer loggers and
+training callbacks.
 
-## Installation
+## Subdirectories / Files
 
-This integration requires the `neptune-mosaicml` package:
-```bash
-pip install neptune-mosaicml
-```
+- `./__init__.py` - Package entry that loads MosaicML loggers when [`mosaicml`]
+  is installed.
 
-## Functionality
+## Usages
 
-The MosaicML integration provides:
-- Automatic logging of training metrics
-- Model checkpoint tracking
-- Training configuration logging
-- Integration with MosaicML callbacks
+- Install [`mosaicml`] with pip before importing this module.
+- The integration is automatically available when [`mosaicml`] is installed.
+- Use MosaicML-specific loggers through this module.
+- See [`../README.md`] for information about Neptune integrations.
 
-## Usage
 
-The integration is automatically available when the `neptune-mosaicml` package is installed. Use MosaicML-specific loggers through this module.
-
-## Parent Module
-
-See `../README.md` for information about Neptune integrations.
+[`mosaicml`]: https://pypi.org/project/mosaicml/
+[`../README.md`]: ../README.md
 
 ---
-7dcfce5a 2026-01-18T14:43:38
+2026-08-07T13:46:32

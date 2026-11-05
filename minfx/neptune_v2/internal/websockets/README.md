@@ -1,31 +1,35 @@
-# Internal WebSockets
+# websockets
 
-This module provides internal WebSocket coordination for real-time features.
+Internal WebSocket coordination for real-time Neptune client features.
 
 ## Purpose
 
-The internal websockets module coordinates WebSocket connections for real-time communication features like live monitoring and signals.
+The internal websockets module coordinates WebSocket connections for real-time
+communication features like live monitoring and signals.
+[`ws::Factory`] builds authenticated [`ws::Reconnecting`] instances.
+[`signals::Job`] listens for remote stop and abort signals.
 
-## Key Components
+## Subdirectories / Files
 
-- `websockets_factory.py`: Factory for creating WebSocket connections
-- `websocket_signals_background_job.py`: Background job for WebSocket-based signal handling
+- `./__init__.py` - Package marker with no public re-exports.
+- `./websocket_signals_background_job.py` - [`signals::Job`] background listener
+  for stop and abort signals.
+- `./websockets_factory.py` - [`ws::Factory`] for creating
+  [`ws::Reconnecting`] connections.
 
-## Functionality
+## Usages
 
-This module provides:
-- WebSocket connection factory
-- Background WebSocket monitoring
-- Real-time signal processing
-- Connection lifecycle management
+- The Neptune client uses this module internally to establish and manage
+  WebSocket connections for real-time features.
+- [`ws::Factory`] creates [`ws::Reconnecting`] instances with OAuth2 session
+  credentials and optional proxy settings.
+- [`signals::Job`] runs a daemon thread that parses incoming signal messages
+  and stops or aborts the active run.
 
-## Usage
 
-This module is used internally by the Neptune client to establish and manage WebSocket connections for real-time features.
-
-## Parent Module
-
-See `../README.md` for information about internal Neptune components.
+[`ws::Factory`]: websockets_factory.WebsocketsFactory
+[`signals::Job`]: websocket_signals_background_job.WebsocketSignalsBackgroundJob
+[`ws::Reconnecting`]: ../../common/websockets/reconnecting_websocket.py
 
 ---
-7dcfce5a 2026-01-18T14:43:38
+2026-08-07T13:46:32
